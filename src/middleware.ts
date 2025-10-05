@@ -49,5 +49,5 @@ export async function middleware(req: NextRequest) {
   }
 
   // All other routes: allow
-  return NextResponse.next();
+  return res;
 }

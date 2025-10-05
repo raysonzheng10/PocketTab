@@ -28,15 +28,15 @@ function PageContent() {
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
 
-  // const [settlements, setSettlements] = useState<Record<string, number>>({});
+  const [settlements, setSettlements] = useState<Record<string, number>>({});
 
-  // const nicknameMap = groupMembers.reduce(
-  //   (acc, member) => {
-  //     acc[member.id] = member.nickname;
-  //     return acc;
-  //   },
-  //   {} as Record<string, string>,
-  // );
+  const nicknameMap = groupMembers.reduce(
+    (acc, member) => {
+      acc[member.id] = member.nickname;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   // ----- fetching group data -----
   useEffect(() => {
@@ -75,16 +75,22 @@ function PageContent() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // const fetchSettlements = useCallback(async () => {
-  //   const res = await fetch(`api/settlement/${groupMemberId}`);
-  //   const data = await res.json();
+  const fetchSettlements = useCallback(async () => {
+    const res = await fetch(`/api/protected/settlement/${groupId}`, {
+      method: "GET",
+    });
+    const data = await res.json();
 
-  //   setSettlements(data.settlements);
-  // }, [groupMemberId]);
+    if (data.error) {
+      setError(data.error);
+    } else {
+      setSettlements(data.settlements);
+    }
+  }, [groupId]);
 
-  // useEffect(() => {
-  //   fetchSettlements();
-  // }, [fetchSettlements]);
+  useEffect(() => {
+    fetchSettlements();
+  }, [fetchSettlements]);
 
   const toggleMember = (id: string) => {
     setSplitWithIds((prev) => {
@@ -144,7 +150,7 @@ function PageContent() {
       {/* Settlements + Transactions Row */}
       <div className="flex flex-row gap-6 w-full max-w-4xl">
         {/* Settlements Panel */}
-        {/* <div className="flex-1 bg-white p-6 rounded shadow">
+        <div className="flex-1 bg-white p-6 rounded shadow">
           <h2 className="text-lg font-semibold mb-2">Settlements</h2>
           {Object.entries(settlements).length === 0 ? (
             <p className="text-gray-500">No balances to show.</p>
@@ -164,7 +170,7 @@ function PageContent() {
               })}
             </ul>
           )}
-        </div> */}
+        </div>
 
         {/* Transactions Panel */}
         <div className="flex-1 bg-white p-6 rounded shadow">

@@ -14,19 +14,20 @@ export async function getAuthenticatedSession(
   const access_token = req.cookies.get("sb-access-token")?.value;
   const refresh_token = req.cookies.get("sb-refresh-token")?.value;
 
-  if (!access_token || !refresh_token) return null;
+  if (!access_token && !refresh_token) return null;
 
   const {
     data: { user },
     error,
   } = await supabaseClient.auth.getUser(access_token);
 
-  if (error || !user) {
+  if ((error || !user) && refresh_token) {
     const { data, error: refreshError } =
       await supabaseClient.auth.refreshSession({
         refresh_token,
       });
 
+    console.log(data);
     if (refreshError || !data?.user || !data?.session) return null;
     return { session: data.session };
   }

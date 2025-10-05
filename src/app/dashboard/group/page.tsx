@@ -19,7 +19,7 @@ function PageContent() {
 
   const [transactionTitle, setTransactionTitle] = useState<string>("");
   const [transactionAmount, setTransactionAmount] = useState<number>(0);
-  const [payerId, setPayerId] = useState<string>("");
+  const [transactionOwnerId, setTransactionOwnerId] = useState<string>("");
 
   // TODO: implement variable splits in expenses
   // const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -101,11 +101,11 @@ function PageContent() {
 
   const createTransaction = async () => {
     // make the purchase object
-    await fetch("api/Transactions/create", {
+    await fetch("/api/protected/transaction/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        payerId: payerId,
+        transactionOwnerId: transactionOwnerId,
         title: transactionTitle,
         amount: transactionAmount,
         splits: [...splitWithIds].map((id) => ({
@@ -190,7 +190,7 @@ function PageContent() {
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-md font-bold">{transaction.title}</h3>
                     <span className="text-green-600 font-semibold">
-                      ${transaction.amount.toFixed(2)}
+                      ${transaction.amount}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
@@ -240,8 +240,8 @@ function PageContent() {
             <div className="mb-3">
               <h2 className="font-medium mb-1">Who Paid?</h2>
               <select
-                value={payerId}
-                onChange={(e) => setPayerId(e.target.value)}
+                value={transactionOwnerId}
+                onChange={(e) => setTransactionOwnerId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select payer</option>

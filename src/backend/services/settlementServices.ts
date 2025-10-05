@@ -1,24 +1,29 @@
 import {
-  getActiveDebtsByGroupMemberId,
-  getActivePaymentsByGroupMemberId,
+  getAllIncomingSettlementsByGroupMemberId,
+  getAllOutgoingSettlementsByGroupMemberId,
 } from "../repositories/settlementRepo";
+import { Decimal } from "@prisma/client/runtime/client";
 
 export async function getActiveSettlementsByGroupMemberId(
   groupMemberId: string,
-): Promise<Record<string, number>> {
-  const debts = await getActiveDebtsByGroupMemberId(groupMemberId);
-  const payments = await getActivePaymentsByGroupMemberId(groupMemberId);
+): Promise<Record<string, Decimal>> {
+  const outgoingSettlements =
+    await getAllOutgoingSettlementsByGroupMemberId(groupMemberId);
+  const incomingSettlements =
+    await getAllIncomingSettlementsByGroupMemberId(groupMemberId);
 
-  const settlements: Record<string, number> = {};
+  const settlements: Record<string, Decimal> = {};
 
   // Others paid you → positive balance
-  for (const { payeeId, amount } of payments) {
-    settlements[payeeId] = amount;
+  for (const { payerId, amount } of incomingSettlements) {
+    settlements[payerId] = amount;
   }
 
   // You owe others → negative balance
-  for (const { payerId, amount } of debts) {
-    settlements[payerId] = (settlements[payerId] ?? 0) - amount;
+  for (const { recipientId, amount } of outgoingSettlements) {
+    settlements[recipientId] = (
+      settlements[recipientId] ?? new Decimal(0)
+    ).minus(amount);
   }
 
   return settlements;

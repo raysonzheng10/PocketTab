@@ -1,5 +1,5 @@
 // api/protected/transaction/create
-import { createTransactionWithExpenses } from "@/backend/services/transactionServices";
+import { createTransactionWithExpensesAndSettlements } from "@/backend/services/transactionServices";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 
@@ -9,17 +9,18 @@ export async function POST(req: NextRequest) {
     if (!authUser) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
-    const { payerId, title, amount, splits } = await req.json();
 
-    if (!payerId || !title || !amount || !splits) {
+    const { transactionOwnerId, title, amount, splits } = await req.json();
+
+    if (!transactionOwnerId || !title || !amount || !splits) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
 
-    const transaction = await createTransactionWithExpenses(
-      payerId,
+    const transaction = await createTransactionWithExpensesAndSettlements(
+      transactionOwnerId,
       title,
       amount,
       splits,

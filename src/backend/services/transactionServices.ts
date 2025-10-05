@@ -10,36 +10,59 @@ type expense = {
   amount: number;
 };
 
-export async function createTransactionWithExpenses(
-  payerId: string,
+export async function createTransactionWithExpensesAndSettlements(
+  transactionOwnerId: string, // payer GroupMemberId
   title: string,
   amount: number,
   expenses: expense[],
 ) {
-  //? Note payerId is a groupMemberID
-  const groupId = await getGroupIdByGroupMemberId(payerId);
-
-  if (!groupId) throw new Error("PayerId does not link to valid GroupId");
+  const groupId = await getGroupIdByGroupMemberId(transactionOwnerId);
+  if (!groupId)
+    throw new Error("transactionOwnerId does not link to valid GroupId");
 
   return prisma.$transaction(async (tx) => {
     const transaction = await tx.transaction.create({
       data: {
         groupId,
-        groupMemberId: payerId,
+        groupMemberId: transactionOwnerId,
         title,
         amount,
       },
     });
 
     await Promise.all(
-      expenses.map((expense: expense) => {
-        return tx.expense.create({
+      expenses.map(async (expense: expense) => {
+        // 1. Create expense row
+        await tx.expense.create({
           data: {
             groupMemberId: expense.groupMemberId,
             transactionId: transaction.id,
             amount: expense.amount,
           },
         });
+
+        // 2. Upsert settlement
+        // Person in `expense.groupMemberId` owes `transactionOwnerId`
+        // ! we make an expense for the payer themselves to track share of transaction
+        // ! however, doesn't make sense to make settlement of self debt
+        if (expense.groupMemberId != transactionOwnerId) {
+          await tx.settlement.upsert({
+            where: {
+              payerId_recipientId: {
+                payerId: expense.groupMemberId,
+                recipientId: transactionOwnerId,
+              },
+            },
+            update: {
+              amount: { increment: expense.amount },
+            },
+            create: {
+              payerId: expense.groupMemberId,
+              recipientId: transactionOwnerId,
+              amount: expense.amount,
+            },
+          });
+        }
       }),
     );
 

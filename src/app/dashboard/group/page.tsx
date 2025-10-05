@@ -19,7 +19,7 @@ function PageContent() {
 
   const [transactionTitle, setTransactionTitle] = useState<string>("");
   const [transactionAmount, setTransactionAmount] = useState<number>(0);
-  const [payerId, setPayerId] = useState<string>("");
+  const [transactionOwnerId, setTransactionOwnerId] = useState<string>("");
 
   // TODO: implement variable splits in expenses
   // const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -28,15 +28,15 @@ function PageContent() {
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
 
-  // const [settlements, setSettlements] = useState<Record<string, number>>({});
+  const [settlements, setSettlements] = useState<Record<string, number>>({});
 
-  // const nicknameMap = groupMembers.reduce(
-  //   (acc, member) => {
-  //     acc[member.id] = member.nickname;
-  //     return acc;
-  //   },
-  //   {} as Record<string, string>,
-  // );
+  const nicknameMap = groupMembers.reduce(
+    (acc, member) => {
+      acc[member.id] = member.nickname;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   // ----- fetching group data -----
   useEffect(() => {
@@ -75,16 +75,22 @@ function PageContent() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // const fetchSettlements = useCallback(async () => {
-  //   const res = await fetch(`api/settlement/${groupMemberId}`);
-  //   const data = await res.json();
+  const fetchSettlements = useCallback(async () => {
+    const res = await fetch(`/api/protected/settlement/${groupId}`, {
+      method: "GET",
+    });
+    const data = await res.json();
 
-  //   setSettlements(data.settlements);
-  // }, [groupMemberId]);
+    if (data.error) {
+      setError(data.error);
+    } else {
+      setSettlements(data.settlements);
+    }
+  }, [groupId]);
 
-  // useEffect(() => {
-  //   fetchSettlements();
-  // }, [fetchSettlements]);
+  useEffect(() => {
+    fetchSettlements();
+  }, [fetchSettlements]);
 
   const toggleMember = (id: string) => {
     setSplitWithIds((prev) => {
@@ -101,11 +107,11 @@ function PageContent() {
 
   const createTransaction = async () => {
     // make the purchase object
-    await fetch("api/Transactions/create", {
+    await fetch("/api/protected/transaction/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        payerId: payerId,
+        transactionOwnerId: transactionOwnerId,
         title: transactionTitle,
         amount: transactionAmount,
         splits: [...splitWithIds].map((id) => ({
@@ -144,7 +150,7 @@ function PageContent() {
       {/* Settlements + Transactions Row */}
       <div className="flex flex-row gap-6 w-full max-w-4xl">
         {/* Settlements Panel */}
-        {/* <div className="flex-1 bg-white p-6 rounded shadow">
+        <div className="flex-1 bg-white p-6 rounded shadow">
           <h2 className="text-lg font-semibold mb-2">Settlements</h2>
           {Object.entries(settlements).length === 0 ? (
             <p className="text-gray-500">No balances to show.</p>
@@ -164,7 +170,7 @@ function PageContent() {
               })}
             </ul>
           )}
-        </div> */}
+        </div>
 
         {/* Transactions Panel */}
         <div className="flex-1 bg-white p-6 rounded shadow">
@@ -190,7 +196,7 @@ function PageContent() {
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-md font-bold">{transaction.title}</h3>
                     <span className="text-green-600 font-semibold">
-                      ${transaction.amount.toFixed(2)}
+                      ${transaction.amount}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
@@ -240,8 +246,8 @@ function PageContent() {
             <div className="mb-3">
               <h2 className="font-medium mb-1">Who Paid?</h2>
               <select
-                value={payerId}
-                onChange={(e) => setPayerId(e.target.value)}
+                value={transactionOwnerId}
+                onChange={(e) => setTransactionOwnerId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select payer</option>

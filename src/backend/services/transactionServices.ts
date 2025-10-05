@@ -5,7 +5,7 @@ import {
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 
-type Split = {
+type expense = {
   groupMemberId: string;
   amount: number;
 };
@@ -14,8 +14,9 @@ export async function createTransactionWithExpenses(
   payerId: string,
   title: string,
   amount: number,
-  splits: Split[],
+  expenses: expense[],
 ) {
+  //? Note payerId is a groupMemberID
   const groupId = await getGroupIdByGroupMemberId(payerId);
 
   if (!groupId) throw new Error("PayerId does not link to valid GroupId");
@@ -31,12 +32,12 @@ export async function createTransactionWithExpenses(
     });
 
     await Promise.all(
-      splits.map((split: Split) => {
+      expenses.map((expense: expense) => {
         return tx.expense.create({
           data: {
-            groupMemberId: split.groupMemberId,
+            groupMemberId: expense.groupMemberId,
             transactionId: transaction.id,
-            amount: split.amount,
+            amount: expense.amount,
           },
         });
       }),
@@ -55,4 +56,20 @@ export async function getTransactionsByGroupMemberId(
 
   const transactions = await getTransactionsWithGroupMemberByGroupId(groupId);
   return transactions;
+}
+
+export async function getDetailedTransactionsByGroupId(groupId: string) {
+  const transactionsWithGroupMember =
+    await getTransactionsWithGroupMemberByGroupId(groupId);
+
+  const detailedTransactions = transactionsWithGroupMember.map((t) => ({
+    id: t.id,
+    createdAt: t.createdAt,
+    amount: t.amount,
+    title: t.title,
+    groupMemberId: t.groupMemberId,
+    groupMemberNickname: t.groupMember.nickname,
+  }));
+
+  return detailedTransactions;
 }

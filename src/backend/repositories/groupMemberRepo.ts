@@ -23,6 +23,10 @@ export async function getGroupMembersByUserId(userId: string) {
   return prisma.groupMember.findMany({ where: { userId } });
 }
 
+export async function getGroupMembersByGroupId(groupId: string) {
+  return prisma.groupMember.findMany({ where: { groupId } });
+}
+
 export async function getGroupMembersWithGroupsByUserId(userId: string) {
   return prisma.groupMember.findMany({
     where: { userId },

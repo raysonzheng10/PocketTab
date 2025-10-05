@@ -1,41 +1,36 @@
+import { prisma } from "../db";
 import {
-  createGroupMember,
-  getGroupIdByGroupMemberId,
   getGroupMemberByUserIdAndGroupId,
   getGroupMembersWithGroupsByUserId,
+  getGroupMembersByGroupId,
 } from "../repositories/groupMemberRepo";
-import {
-  createGroup,
-  getGroupWithGroupMembersById,
-} from "../repositories/groupRepo";
-import { UserGroup } from "@/app/user/types";
+import { getGroupById } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
+import { GroupMember } from "@/app/dashboard/group/types";
+import { Group } from "@/app/dashboard/group/types";
 
-export async function getGroupWithGroupMembersByGroupMemberId(
-  groupMemberId: string,
-) {
-  const groupId = await getGroupIdByGroupMemberId(groupMemberId);
+export async function getGroupWithGroupMembersByGroupId(groupId: string) {
+  const group = await getGroupById(groupId);
+  const rawGroupMembers = await getGroupMembersByGroupId(groupId);
 
-  if (!groupId) return null;
+  const groupMembers: GroupMember[] = rawGroupMembers.map((gm) => ({
+    id: gm.id,
+    createdAt: gm.createdAt,
+    nickname: gm.nickname,
+  }));
 
-  const groupWithGroupMembers = await getGroupWithGroupMembersById(groupId);
-  return groupWithGroupMembers;
-  //TODO: probably define a type to handle groupWithGroupMembers
+  return { group: group, groupMembers: groupMembers };
 }
 
 export async function getGroupsByUserId(userId: string) {
   const groupMembersWithGroups =
     await getGroupMembersWithGroupsByUserId(userId);
 
-  const userGroups: UserGroup[] = groupMembersWithGroups.map(
-    (groupMemberWithGroup) => ({
-      groupId: groupMemberWithGroup.groupId,
-      groupMemberId: groupMemberWithGroup.id,
-      groupName: groupMemberWithGroup.group.name,
-    }),
+  const groups: Group[] = groupMembersWithGroups.map(
+    (groupMemberWithGroup) => groupMemberWithGroup.group,
   );
 
-  return userGroups;
+  return groups;
 }
 
 export async function checkUserIsInGroup(userId: string, groupId: string) {
@@ -44,26 +39,25 @@ export async function checkUserIsInGroup(userId: string, groupId: string) {
 }
 
 export async function createNewGroupByUserId(userId: string) {
-  const newGroup = await createGroup({
-    name: "New Group",
-    description: "Your New Group!",
-  });
-
   const user = await getUserById(userId);
 
   if (!user) throw new Error("User not found");
 
-  const newGroupMember = await createGroupMember({
-    userId: userId,
-    groupId: newGroup.id,
-    nickname: user.email,
+  return prisma.$transaction(async (tx) => {
+    const newGroup = await tx.group.create({
+      data: {
+        name: "New Group",
+        description: "Your New Group!",
+      },
+    });
+    await tx.groupMember.create({
+      data: {
+        userId: userId,
+        groupId: newGroup.id,
+        nickname: user.email,
+      },
+    });
+
+    return newGroup;
   });
-
-  const userGroup: UserGroup = {
-    groupId: newGroup.id,
-    groupMemberId: newGroupMember.id,
-    groupName: newGroup.name,
-  };
-
-  return userGroup;
 }

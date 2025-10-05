@@ -1,120 +1,25 @@
 "use client";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-export default function Page() {
+export default function LandingPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendOtp = async () => {
-    setError("");
-    setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    setIsLoading(false);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setIsOtpSent(true);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) {
-      setError("OTP is required");
-      return;
-    }
-
-    setError("");
-    setIsLoading(true);
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "email",
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!data?.user) {
-      setError("Failed to retrieve user from OTP verification");
-      setIsLoading(false);
-      return;
-    }
-
-    // Create or fetch user in your database
-    const res = await fetch("/api/Users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: data.user.id,
-        userEmail: data.user.email,
-      }),
-    });
-
-    const result = await res.json();
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      router.push(`/user?userId=${result.user.id}`);
-      setIsLoading(false);
-    }
+  const handleLoginClick = async () => {
+    router.push("/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-sm text-black">
-        <h1 className="text-2xl font-bold text-center mb-4">Divvy OTP Login</h1>
-
-        {error && <p className="text-red-600 mb-4">{error}</p>}
-
-        {isOtpSent ? (
-          <>
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
-              className="w-full px-4 py-2 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleVerifyOtp}
-              disabled={isLoading}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {isLoading ? "Verifying..." : "Confirm OTP"}
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-              className="w-full px-4 py-2 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleSendOtp}
-              disabled={isLoading}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {isLoading ? "Sending OTP..." : "Send OTP"}
-            </button>
-          </>
-        )}
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-black">
+      <h1 className="text-4xl font-bold mb-4">Divvy</h1>
+      <p className="mb-6 text-lg">
+        Split and track expenses with friends easily.
+      </p>
+      <button
+        onClick={handleLoginClick}
+        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Login / Get Started
+      </button>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 // dashboard
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { User } from "./types";
 import { Group } from "./group/types";
 
-function DashboardContent() {
+export default function DashboardContent() {
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
@@ -86,7 +86,7 @@ function DashboardContent() {
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-6">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Welcome, {user.email}
+          Welcome, {user?.email ?? "asdf"}
         </h2>
 
         {error && (
@@ -146,14 +146,5 @@ function DashboardContent() {
         Logout
       </button>
     </div>
-  );
-}
-
-export default function Dashboard() {
-  return (
-    //! Ensure that this fallback is the same as the fallback for !user
-    <Suspense fallback={<p>Loading user...</p>}>
-      <DashboardContent />
-    </Suspense>
   );
 }

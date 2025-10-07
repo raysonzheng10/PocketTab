@@ -27,10 +27,15 @@ export async function middleware(req: NextRequest) {
       const groupId = req.nextUrl.searchParams.get("groupId");
       if (groupId) {
         url.pathname = "/login";
-        url.search = `?redirectTo=join/groupId=${groupId}`;
+        url.searchParams.delete("groupId");
+        url.searchParams.set(
+          "redirectTo",
+          encodeURIComponent(`/join?groupId=${groupId}`),
+        );
         return NextResponse.redirect(url);
       }
     }
+
     //! Note this should only be '/' and '/login' and '/api' not in protected
     return NextResponse.next();
   }

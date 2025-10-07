@@ -15,13 +15,18 @@ export default function DashboardContent() {
   // ----- fetching user data -----
   useEffect(() => {
     const fetchUser = async () => {
-      const res = await fetch("/api/protected/user");
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/protected/user");
+        const data = await res.json();
 
-      if (data.error) {
-        setError(data.error);
-      } else {
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Failed to fetch user");
+        }
+
         setUser(data.user);
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error occurred while fetching user");
       }
     };
 
@@ -30,15 +35,18 @@ export default function DashboardContent() {
 
   // ----- fetching groups that user is in -----
   const fetchGroups = useCallback(async () => {
-    const res = await fetch("/api/protected/group", {
-      method: "GET",
-    });
+    try {
+      const res = await fetch("/api/protected/group", { method: "GET" });
+      const data = await res.json();
 
-    const data = await res.json();
-    if (data.error) {
-      setError(data.error);
-    } else {
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to fetch groups");
+      }
+
       setGroups(data.groups);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while fetching groups");
     }
   }, []);
 
@@ -48,10 +56,20 @@ export default function DashboardContent() {
 
   // ----- button logic -----
   const handleLogout = async () => {
-    await fetch("api/protected/auth/clearToken", {
-      method: "POST",
-    });
-    router.push("/");
+    try {
+      const res = await fetch("/api/protected/auth/clearToken", {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to log out");
+      }
+
+      router.push("/");
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while logging out");
+    }
   };
 
   const handleMoveToGroupPage = async (groupId: string) => {
@@ -59,27 +77,47 @@ export default function DashboardContent() {
   };
 
   const handleCreateNewGroup = async () => {
-    await fetch("api/protected/group/create", {
-      method: "POST",
-    });
+    try {
+      const res = await fetch("/api/protected/group/create", {
+        method: "POST",
+      });
+      const data = await res.json();
 
-    fetchGroups(); // reload state
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to create group");
+      }
+
+      fetchGroups();
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while creating group");
+    }
   };
 
   const handleJoinGroup = async () => {
-    await fetch("api/protected/group/join", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        groupId: joinGroupId,
-      }),
-    });
+    try {
+      const res = await fetch("/api/protected/group/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groupId: joinGroupId }),
+      });
 
-    fetchGroups();
-    setJoinGroupId("");
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to join group");
+      }
+
+      fetchGroups();
+      setJoinGroupId("");
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while joining group");
+    }
   };
 
   //TODO: make a loading component
+  if (error) return <p className="text-center mt-10">Error: {error}</p>;
   if (!user) return <p className="text-center mt-10">Loading user...</p>;
 
   return (

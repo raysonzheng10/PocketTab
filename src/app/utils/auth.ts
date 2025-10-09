@@ -27,7 +27,6 @@ export async function getAuthenticatedSession(
         refresh_token,
       });
 
-    console.log(data);
     if (refreshError || !data?.user || !data?.session) return null;
     return { session: data.session };
   }

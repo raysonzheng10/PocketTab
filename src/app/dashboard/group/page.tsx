@@ -145,6 +145,27 @@ function PageContent() {
             </div>
           ))}
         </div>
+        {/* Invite Link Section */}
+        <div className="mt-4">
+          <h2 className="text-md font-semibold mb-1">Invite Link</h2>
+          <div className="flex items-center gap-2">
+            <input
+              readOnly
+              value={`${window.location.origin}/join?groupId=${groupId}`}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-gray-50"
+            />
+            <button
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/join?groupId=${groupId}`,
+                )
+              }
+              className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Settlements + Transactions Row */}

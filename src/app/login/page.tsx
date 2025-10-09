@@ -1,10 +1,13 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseClient } from "../utils/supabaseClient";
 
-export default function Page() {
+function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
+
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
@@ -71,7 +74,13 @@ export default function Page() {
       setError(result.error);
       setIsLoading(false);
     } else {
-      router.push(`/dashboard`);
+      if (redirectTo) {
+        // decode the redirect URL in case it was encoded
+        const decodedRedirect = decodeURIComponent(redirectTo);
+        router.push(decodedRedirect);
+      } else {
+        router.push("/dashboard");
+      }
     }
   };
 
@@ -119,5 +128,13 @@ export default function Page() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading group join...</p>}>
+      <Login />
+    </Suspense>
   );
 }

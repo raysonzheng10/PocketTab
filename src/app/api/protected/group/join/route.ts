@@ -1,7 +1,10 @@
 // api/protected/group/join
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import { createGroupMember } from "@/backend/repositories/groupMemberRepo";
+import {
+  createGroupMember,
+  getGroupMemberByUserIdAndGroupId,
+} from "@/backend/repositories/groupMemberRepo";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +15,15 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { groupId } = body;
+
+    // TODO: factor this logic into /service layer
+    const existingGroupMember = getGroupMemberByUserIdAndGroupId(
+      authUser.id,
+      groupId,
+    );
+    if (existingGroupMember) {
+      return NextResponse.json({ groupMember: existingGroupMember });
+    }
 
     const newGroupMember = createGroupMember({
       userId: authUser.id,

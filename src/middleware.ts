@@ -23,7 +23,20 @@ export async function middleware(req: NextRequest) {
       });
     }
 
-    //! Note this should only be '/' and '/login' and '/api' not in protected
+    if (pathname.startsWith("/join")) {
+      const groupId = req.nextUrl.searchParams.get("groupId");
+      if (groupId) {
+        url.pathname = "/login";
+        url.searchParams.delete("groupId");
+        url.searchParams.set(
+          "redirectTo",
+          encodeURIComponent(`/join?groupId=${groupId}`),
+        );
+        return NextResponse.redirect(url);
+      }
+    }
+
+    //! Note this should only be '/' and '/login' and '/join (no groupId)' and '/api' not in protected
     return NextResponse.next();
   }
 

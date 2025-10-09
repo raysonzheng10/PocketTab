@@ -1,27 +1,31 @@
 "use client";
 // dashboard
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { User } from "./types";
 import { Group } from "./group/types";
 
-function DashboardContent() {
+export default function DashboardContent() {
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [joinGroupId, setJoinGroupId] = useState<string>("");
 
   // ----- fetching user data -----
   useEffect(() => {
     const fetchUser = async () => {
-      const res = await fetch("/api/protected/user");
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/protected/user");
+        const data = await res.json();
 
-      if (data.error) {
-        setError(data.error);
-      } else {
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Failed to fetch user");
+        }
+
         setUser(data.user);
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error occurred while fetching user");
       }
     };
 
@@ -30,15 +34,18 @@ function DashboardContent() {
 
   // ----- fetching groups that user is in -----
   const fetchGroups = useCallback(async () => {
-    const res = await fetch("/api/protected/group", {
-      method: "GET",
-    });
+    try {
+      const res = await fetch("/api/protected/group", { method: "GET" });
+      const data = await res.json();
 
-    const data = await res.json();
-    if (data.error) {
-      setError(data.error);
-    } else {
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to fetch groups");
+      }
+
       setGroups(data.groups);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while fetching groups");
     }
   }, []);
 
@@ -48,10 +55,20 @@ function DashboardContent() {
 
   // ----- button logic -----
   const handleLogout = async () => {
-    await fetch("api/protected/auth/clearToken", {
-      method: "POST",
-    });
-    router.push("/");
+    try {
+      const res = await fetch("/api/protected/auth/clearToken", {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to log out");
+      }
+
+      router.push("/");
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while logging out");
+    }
   };
 
   const handleMoveToGroupPage = async (groupId: string) => {
@@ -59,34 +76,32 @@ function DashboardContent() {
   };
 
   const handleCreateNewGroup = async () => {
-    await fetch("api/protected/group/create", {
-      method: "POST",
-    });
+    try {
+      const res = await fetch("/api/protected/group/create", {
+        method: "POST",
+      });
+      const data = await res.json();
 
-    fetchGroups(); // reload state
-  };
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to create group");
+      }
 
-  const handleJoinGroup = async () => {
-    await fetch("api/protected/group/join", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        groupId: joinGroupId,
-      }),
-    });
-
-    fetchGroups();
-    setJoinGroupId("");
+      fetchGroups();
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while creating group");
+    }
   };
 
   //TODO: make a loading component
+  if (error) return <p className="text-center mt-10">Error: {error}</p>;
   if (!user) return <p className="text-center mt-10">Loading user...</p>;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-6">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Welcome, {user.email}
+          Welcome, {user?.email ?? "asdf"}
         </h2>
 
         {error && (
@@ -102,22 +117,6 @@ function DashboardContent() {
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
           >
             Create New Group
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between mb-3 gap-4">
-          <input
-            placeholder="Enter groupID"
-            value={joinGroupId}
-            onChange={(e) => setJoinGroupId(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <button
-            onClick={handleJoinGroup}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            Join
           </button>
         </div>
 
@@ -146,14 +145,5 @@ function DashboardContent() {
         Logout
       </button>
     </div>
-  );
-}
-
-export default function Dashboard() {
-  return (
-    //! Ensure that this fallback is the same as the fallback for !user
-    <Suspense fallback={<p>Loading user...</p>}>
-      <DashboardContent />
-    </Suspense>
   );
 }

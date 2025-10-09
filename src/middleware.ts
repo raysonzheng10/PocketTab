@@ -36,7 +36,7 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    //! Note this should only be '/' and '/login' and '/api' not in protected
+    //! Note this should only be '/' and '/login' and '/join (no groupId)' and '/api' not in protected
     return NextResponse.next();
   }
 

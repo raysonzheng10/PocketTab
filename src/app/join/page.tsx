@@ -33,8 +33,13 @@ export default function Page() {
     }
   }, [groupId, router]);
 
+  console.log("groupID: ", groupId);
   useEffect(() => {
-    if (groupId) handleJoinGroup();
+    if (groupId) {
+      handleJoinGroup();
+    } else {
+      setError("Invalid join url");
+    }
   }, [groupId, handleJoinGroup]);
 
   return (

@@ -1,5 +1,6 @@
-import { Input } from "./basics/Input";
 import { Button } from "./basics/Button";
+import { useRef } from "react";
+import { isDigit } from "@/app/utils/utils";
 
 interface OtpFormProps {
   otp: string;
@@ -36,15 +37,7 @@ export function OtpForm({
           >
             Verification code
           </label>
-          <Input
-            id="otp"
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter 6-digit code"
-            autoComplete="one-time-code"
-            autoFocus
-          />
+          <OtpInput otp={otp} setOtp={setOtp} />
         </div>
 
         <Button onClick={onVerify} isLoading={isLoading}>
@@ -61,6 +54,88 @@ export function OtpForm({
           Resend code
         </button>
       </p>
+    </div>
+  );
+}
+
+interface OtpInputProps {
+  otp: string;
+  setOtp: (otp: string) => void;
+}
+
+function OtpInput({ otp, setOtp }: OtpInputProps) {
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const otpArray = Array.from({ length: 6 }, (_, i) => otp[i] || "");
+
+  // Handle typing
+  const handleChange = (index: number, value: string) => {
+    if (!isDigit(value)) return;
+    const newOtpArray = [...otpArray];
+    newOtpArray[index] = value[0]; // replace current index
+    setOtp(newOtpArray.join(""));
+    if (index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  // Handle delete/backspace
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      if (otpArray[index]) {
+        // delete current
+        const newOtpArray = [...otpArray];
+        newOtpArray[index] = "";
+        setOtp(newOtpArray.join(""));
+      } else if (index > 0) {
+        // move focus back
+        inputRefs.current[index - 1]?.focus();
+        const newOtpArray = [...otpArray];
+        newOtpArray[index - 1] = "";
+        setOtp(newOtpArray.join(""));
+      }
+    }
+  };
+
+  // Handle paste
+  const handlePaste = (
+    index: number,
+    e: React.ClipboardEvent<HTMLInputElement>,
+  ) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData("Text").replace(/\D/g, "");
+    if (!paste) return;
+
+    const newOtpArray = [...otpArray];
+    for (let i = 0; i < paste.length && index + i < 6; i++) {
+      newOtpArray[index + i] = paste[i];
+    }
+    setOtp(newOtpArray.join(""));
+    const nextFocus = Math.min(index + paste.length, 5);
+    inputRefs.current[nextFocus]?.focus();
+  };
+
+  return (
+    <div className="flex gap-2 justify-between">
+      {otpArray.map((digit, index) => (
+        <input
+          className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          key={index}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={digit}
+          onChange={(e) => handleChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={(e) => handlePaste(index, e)}
+          onFocus={(e) => e.target.select()}
+          autoFocus={index === 0}
+        />
+      ))}
     </div>
   );
 }

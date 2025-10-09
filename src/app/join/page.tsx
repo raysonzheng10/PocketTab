@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Page() {
+function JoinGroup() {
   const searchParams = useSearchParams();
   const groupId = searchParams.get("groupId");
   const router = useRouter();
@@ -52,10 +52,16 @@ export default function Page() {
           <p className="text-gray-700">{error}</p>
         </div>
       ) : (
-        <Suspense fallback={<p>fall back SUSPENSE</p>}>
-          <p className="text-lg text-gray-700">Joining group {groupId}...</p>
-        </Suspense>
+        <p className="text-lg text-gray-700">Joining group {groupId}...</p>
       )}
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading group join...</p>}>
+      <JoinGroup />
+    </Suspense>
   );
 }

@@ -10,7 +10,6 @@ export default function DashboardContent() {
   const [error, setError] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [joinGroupId, setJoinGroupId] = useState<string>("");
 
   // ----- fetching user data -----
   useEffect(() => {
@@ -94,28 +93,6 @@ export default function DashboardContent() {
     }
   };
 
-  const handleJoinGroup = async () => {
-    try {
-      const res = await fetch("/api/protected/group/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupId: joinGroupId }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Failed to join group");
-      }
-
-      fetchGroups();
-      setJoinGroupId("");
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Unknown error occurred while joining group");
-    }
-  };
-
   //TODO: make a loading component
   if (error) return <p className="text-center mt-10">Error: {error}</p>;
   if (!user) return <p className="text-center mt-10">Loading user...</p>;
@@ -140,22 +117,6 @@ export default function DashboardContent() {
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
           >
             Create New Group
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between mb-3 gap-4">
-          <input
-            placeholder="Enter groupID"
-            value={joinGroupId}
-            onChange={(e) => setJoinGroupId(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <button
-            onClick={handleJoinGroup}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            Join
           </button>
         </div>
 

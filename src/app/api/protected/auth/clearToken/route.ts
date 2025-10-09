@@ -21,6 +21,5 @@ export async function POST() {
     maxAge: 0,
   });
 
-  console.log(res);
   return res;
 }

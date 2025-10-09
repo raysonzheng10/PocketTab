@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
@@ -52,7 +52,9 @@ export default function Page() {
           <p className="text-gray-700">{error}</p>
         </div>
       ) : (
-        <p className="text-lg text-gray-700">Joining group {groupId}...</p>
+        <Suspense fallback={<p>fall back SUSPENSE</p>}>
+          <p className="text-lg text-gray-700">Joining group {groupId}...</p>
+        </Suspense>
       )}
     </div>
   );

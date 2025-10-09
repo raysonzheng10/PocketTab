@@ -1,7 +1,12 @@
 "use client";
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Group, GroupMember, DetailedTransaction } from "./types";
+import {
+  Group,
+  GroupMember,
+  DetailedTransaction,
+  DetailedSettlements,
+} from "./types";
 
 function PageContent() {
   // const router = useRouter();
@@ -28,15 +33,8 @@ function PageContent() {
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
 
-  const [settlements, setSettlements] = useState<Record<string, number>>({});
-
-  const nicknameMap = groupMembers.reduce(
-    (acc, member) => {
-      acc[member.id] = member.nickname;
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
+  const [detailedSettlements, setDetailedSettlements] =
+    useState<DetailedSettlements | null>(null);
 
   // ----- fetching group data -----
   useEffect(() => {
@@ -75,6 +73,7 @@ function PageContent() {
     fetchTransactions();
   }, [fetchTransactions]);
 
+  // ----- fetching user incoming/outgoing settlements ------
   const fetchSettlements = useCallback(async () => {
     const res = await fetch(`/api/protected/settlement/${groupId}`, {
       method: "GET",
@@ -84,7 +83,7 @@ function PageContent() {
     if (data.error) {
       setError(data.error);
     } else {
-      setSettlements(data.settlements);
+      setDetailedSettlements(data);
     }
   }, [groupId]);
 
@@ -173,23 +172,31 @@ function PageContent() {
         {/* Settlements Panel */}
         <div className="flex-1 bg-white p-6 rounded shadow">
           <h2 className="text-lg font-semibold mb-2">Settlements</h2>
-          {Object.entries(settlements).length === 0 ? (
-            <p className="text-gray-500">No balances to show.</p>
-          ) : (
-            <ul className="space-y-2">
-              {Object.entries(settlements).map(([memberId, amount]) => {
-                const nickname = nicknameMap[memberId] || "Unknown";
-                if (amount === 0) return null;
+          {detailedSettlements ? (
+            <div>
+              <p>
+                {detailedSettlements.total > 0
+                  ? `You are owed $${detailedSettlements.total.toFixed(2)}`
+                  : `You owe $${Math.abs(detailedSettlements.total).toFixed(2)}`}{" "}
+              </p>
+              <ul className="space-y-2">
+                {Object.entries(detailedSettlements.settlements).map(
+                  ([memberId, { nickname, amount }]) => {
+                    if (amount === 0) return null;
 
-                return (
-                  <li key={memberId} className="text-sm text-gray-700">
-                    {amount > 0
-                      ? `${nickname} owes you $${amount.toFixed(2)}`
-                      : `You owe ${nickname} $${Math.abs(amount).toFixed(2)}`}
-                  </li>
-                );
-              })}
-            </ul>
+                    return (
+                      <li key={memberId} className="text-sm text-gray-700">
+                        {amount > 0
+                          ? `${nickname} owes you $${amount.toFixed(2)}`
+                          : `You owe ${nickname} $${Math.abs(amount).toFixed(2)}`}
+                      </li>
+                    );
+                  },
+                )}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-gray-500">No balances to show.</p>
           )}
         </div>
 

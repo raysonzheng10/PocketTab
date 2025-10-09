@@ -7,6 +7,9 @@ export async function getAllIncomingSettlementsByGroupMemberId(
     where: {
       recipientId: groupMemberId,
     },
+    include: {
+      payer: true,
+    },
   });
 }
 
@@ -17,5 +20,6 @@ export async function getAllOutgoingSettlementsByGroupMemberId(
     where: {
       payerId: groupMemberId,
     },
+    include: { recipient: true },
   });
 }

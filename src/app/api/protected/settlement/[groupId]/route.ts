@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 import { getGroupMemberByUserIdAndGroupId } from "@/backend/repositories/groupMemberRepo";
-import { getActiveSettlementsByGroupMemberId } from "@/backend/services/settlementServices";
+import { getDetailedSettlementsByGroupMemberId } from "@/backend/services/settlementServices";
 
 export async function GET(
   req: NextRequest,
@@ -26,18 +26,22 @@ export async function GET(
         { status: 400 },
       );
     }
-    const settlementsDecimal = await getActiveSettlementsByGroupMemberId(
-      groupMember.id,
-    );
 
-    const settlements: Record<string, number> = Object.fromEntries(
-      Object.entries(settlementsDecimal).map(([key, value]) => [
-        key,
-        value.toNumber(),
-      ]),
-    );
+    const detailedSettlementsDecimal =
+      await getDetailedSettlementsByGroupMemberId(groupMember.id);
 
-    return NextResponse.json({ settlements });
+    // Convert all Decimal values to numbers for JSON
+    const settlements = Object.fromEntries(
+      Object.entries(detailedSettlementsDecimal.settlements).map(
+        ([id, { nickname, amount }]) => [
+          id,
+          { nickname, amount: amount.toNumber() },
+        ],
+      ),
+    );
+    const total = detailedSettlementsDecimal.total.toNumber();
+
+    return NextResponse.json({ settlements, total });
   } catch (err: unknown) {
     console.error("Error in POST /settlement/[groupId]:", err);
     let message = "Server error";

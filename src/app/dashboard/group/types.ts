@@ -24,3 +24,8 @@ export interface Expense {
   groupMemberId: string;
   amount: number;
 }
+
+export interface DetailedSettlements {
+  settlements: Record<string, { nickname: string; amount: number }>;
+  total: number;
+}

@@ -50,7 +50,7 @@ function PageContent() {
         title: transactionTitle,
         amount: transactionAmount,
         interval: recurringInterval,
-        startDate: recurringStartDate,
+        startDate: new Date(recurringStartDate),
         splits: [...splitWithIds].map((id) => ({
           groupMemberId: id,
           amount: transactionAmount / splitWithIds.size,

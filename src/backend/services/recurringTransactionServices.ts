@@ -7,7 +7,7 @@ type expense = {
 };
 
 function getNextOccurrence(interval: string, startDate: Date): Date {
-  const next = new Date(startDate.getTime()); // clone the date
+  const next = new Date(startDate); // clone the date
 
   switch (interval) {
     case "daily":

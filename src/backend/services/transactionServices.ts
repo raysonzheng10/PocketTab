@@ -1,17 +1,124 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
+import { Prisma } from "@prisma/client";
+import { getRecurringTransactionWithRecurringExpensesById } from "../repositories/recurringTransactionRepo";
 import {
   getTransactionsWithGroupMemberByGroupId,
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
+import { getNextOccurrence } from "./recurringTransactionServices";
 
 type expense = {
   groupMemberId: string;
   amount: number;
 };
 
+// Pass in a tx client to perform transaction
+async function createTransactionWithExpensesAndSettlementsInTx(
+  tx: Prisma.TransactionClient,
+  transactionOwnerId: string,
+  title: string,
+  amount: number,
+  expenses: expense[],
+  groupId: string,
+) {
+  const transaction = await tx.transaction.create({
+    data: {
+      groupId,
+      groupMemberId: transactionOwnerId,
+      title,
+      amount,
+    },
+  });
+
+  await Promise.all(
+    expenses.map(async (expense: expense) => {
+      await tx.expense.create({
+        data: {
+          groupMemberId: expense.groupMemberId,
+          transactionId: transaction.id,
+          amount: expense.amount,
+        },
+      });
+
+      if (expense.groupMemberId != transactionOwnerId) {
+        await tx.settlement.upsert({
+          where: {
+            payerId_recipientId: {
+              payerId: expense.groupMemberId,
+              recipientId: transactionOwnerId,
+            },
+          },
+          update: {
+            amount: { increment: expense.amount },
+          },
+          create: {
+            payerId: expense.groupMemberId,
+            recipientId: transactionOwnerId,
+            amount: expense.amount,
+          },
+        });
+      }
+    }),
+  );
+
+  return transaction;
+}
+
+export async function createTransactionWithExpensesByRecurringTransactionId(
+  recurringTransactionId: string,
+) {
+  const recurringTransactionWithRecurringExpenses =
+    await getRecurringTransactionWithRecurringExpensesById(
+      recurringTransactionId,
+    );
+  if (!recurringTransactionWithRecurringExpenses) {
+    throw new Error("recurringTransactionId is not valid");
+  }
+
+  const { recurringExpenses, ...recurringTransaction } =
+    recurringTransactionWithRecurringExpenses;
+
+  const groupId = await getGroupIdByGroupMemberId(
+    recurringTransaction.groupMemberId,
+  );
+  if (!groupId)
+    throw new Error(
+      "transactionOwnerId does not link to valid GroupId, owner of recurring transaction not in group",
+    );
+
+  return prisma.$transaction(async (tx) => {
+    // Create transaction with expenses and settlements
+    const newTransaction =
+      await createTransactionWithExpensesAndSettlementsInTx(
+        tx,
+        recurringTransaction.groupMemberId,
+        recurringTransaction.title,
+        recurringTransaction.amount.toNumber(),
+        recurringExpenses.map((expense) => ({
+          groupMemberId: expense.groupMemberId,
+          amount: expense.amount.toNumber(),
+        })),
+        groupId,
+      );
+
+    // Update recurring transaction's next occurrence
+    await tx.recurringTransaction.update({
+      where: { id: recurringTransactionId },
+      data: {
+        nextOccurrence: getNextOccurrence(
+          recurringTransaction.interval,
+          newTransaction.date,
+        ),
+      },
+    });
+
+    return newTransaction;
+  });
+}
+
 export async function createTransactionWithExpensesAndSettlements(
-  transactionOwnerId: string, // payer GroupMemberId
+  transactionOwnerId: string,
   title: string,
   amount: number,
   expenses: expense[],
@@ -21,52 +128,14 @@ export async function createTransactionWithExpensesAndSettlements(
     throw new Error("transactionOwnerId does not link to valid GroupId");
 
   return prisma.$transaction(async (tx) => {
-    const transaction = await tx.transaction.create({
-      data: {
-        groupId,
-        groupMemberId: transactionOwnerId,
-        title,
-        amount,
-      },
-    });
-
-    await Promise.all(
-      expenses.map(async (expense: expense) => {
-        // 1. Create expense row
-        await tx.expense.create({
-          data: {
-            groupMemberId: expense.groupMemberId,
-            transactionId: transaction.id,
-            amount: expense.amount,
-          },
-        });
-
-        // 2. Upsert settlement
-        // Person in `expense.groupMemberId` owes `transactionOwnerId`
-        // ! we make an expense for the payer themselves to track share of transaction
-        // ! however, doesn't make sense to make settlement of self debt
-        if (expense.groupMemberId != transactionOwnerId) {
-          await tx.settlement.upsert({
-            where: {
-              payerId_recipientId: {
-                payerId: expense.groupMemberId,
-                recipientId: transactionOwnerId,
-              },
-            },
-            update: {
-              amount: { increment: expense.amount },
-            },
-            create: {
-              payerId: expense.groupMemberId,
-              recipientId: transactionOwnerId,
-              amount: expense.amount,
-            },
-          });
-        }
-      }),
+    return createTransactionWithExpensesAndSettlementsInTx(
+      tx,
+      transactionOwnerId,
+      title,
+      amount,
+      expenses,
+      groupId,
     );
-
-    return transaction;
   });
 }
 

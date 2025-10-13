@@ -6,7 +6,7 @@ type expense = {
   amount: number;
 };
 
-function getNextOccurrence(interval: string, startDate: Date): Date {
+export function getNextOccurrence(interval: string, startDate: Date): Date {
   const next = new Date(startDate); // clone the date
 
   switch (interval) {

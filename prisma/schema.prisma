@@ -12,6 +12,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   email     String   @unique
 
   groupMembers GroupMember[] // A user can be in multiple groups
@@ -20,26 +21,31 @@ model User {
 model Group {
   id          String   @id @default(uuid()) @db.Uuid
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
   name        String?
   description String?
 
-  groupMembers GroupMember[] // A group can have multiple users
-  transactions Transaction[] // A group makes multiple transactions
+  groupMembers          GroupMember[] // A group can have multiple users
+  transactions          Transaction[] // A group makes multiple transactions
+  recurringTransactions RecurringTransaction[] // A group can have multiple recurring transactions
 }
 
 model GroupMember {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   userId    String   @db.Uuid
   groupId   String   @db.Uuid
   nickname  String
 
-  transactions        Transaction[] // A groupMember can make multiple transactions (payer)
-  expenses            Expense[] // A groupMember can incur multiple expenses (payee)
-  outgoingSettlements Settlement[]  @relation("Payer")
-  incomingSettlements Settlement[]  @relation("Recipient")
-  user                User          @relation(fields: [userId], references: [id])
-  group               Group         @relation(fields: [groupId], references: [id])
+  transactions          Transaction[] // A groupMember can make multiple transactions (payer)
+  recurringTransactions RecurringTransaction[] // A groupMember can be responsible for paying multiple recurring transactions (payer)
+  expenses              Expense[] // A groupMember can incur multiple expenses (payee)
+  recurringExpenses     RecurringExpense[]
+  outgoingSettlements   Settlement[]           @relation("Payer")
+  incomingSettlements   Settlement[]           @relation("Recipient")
+  user                  User                   @relation(fields: [userId], references: [id])
+  group                 Group                  @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId])
 }
@@ -47,6 +53,8 @@ model GroupMember {
 model Transaction {
   id            String   @id @default(uuid()) @db.Uuid
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  date          DateTime @default(now()) // actual transaction date
   groupId       String   @db.Uuid
   groupMemberId String   @db.Uuid
   amount        Decimal
@@ -60,7 +68,7 @@ model Transaction {
 model Expense {
   id            String   @id @default(uuid()) @db.Uuid
   createdAt     DateTime @default(now())
-  date          DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
   amount        Decimal
   groupMemberId String   @db.Uuid
   transactionId String   @db.Uuid
@@ -72,7 +80,7 @@ model Expense {
 model Settlement {
   id          String   @id @default(uuid()) @db.Uuid
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
   payerId     String   @db.Uuid
   recipientId String   @db.Uuid
   amount      Decimal
@@ -81,4 +89,33 @@ model Settlement {
   recipient GroupMember @relation("Recipient", fields: [recipientId], references: [id])
 
   @@unique([payerId, recipientId])
+}
+
+model RecurringTransaction {
+  id             String    @id @default(uuid()) @db.Uuid
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+  groupId        String    @db.Uuid
+  groupMemberId  String    @db.Uuid
+  title          String
+  amount         Decimal
+  interval       String // 'daily', 'weekly', 'monthly', 'yearly'
+  startDate      DateTime
+  endDate        DateTime?
+  nextOccurrence DateTime
+  // splitRules     Json // store payee IDs and proportions
+
+  group             Group              @relation(fields: [groupId], references: [id])
+  groupMember       GroupMember        @relation(fields: [groupMemberId], references: [id])
+  recurringExpenses RecurringExpense[]
+}
+
+model RecurringExpense {
+  id                     String  @id @default(uuid()) @db.Uuid
+  recurringTransactionId String  @db.Uuid
+  groupMemberId          String  @db.Uuid
+  amount                 Decimal
+
+  recurringTransaction RecurringTransaction @relation(fields: [recurringTransactionId], references: [id])
+  groupMember          GroupMember          @relation(fields: [groupMemberId], references: [id])
 }

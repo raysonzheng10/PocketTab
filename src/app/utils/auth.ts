@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { supabaseClient } from "./supabaseClient";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 
-//! if authResult is null, that means user is not valid
-//! session is only defined if we had to use the refresh token
-type AuthSession = null | {
-  session: Session | null;
+type AuthSession = {
+  access_token: string | null;
+  refresh_token: string | null;
+  success: boolean; // determines whether was successful or not
 };
 
 export async function getAuthenticatedSession(
@@ -14,24 +14,53 @@ export async function getAuthenticatedSession(
   const access_token = req.cookies.get("sb-access-token")?.value;
   const refresh_token = req.cookies.get("sb-refresh-token")?.value;
 
-  if (!access_token && !refresh_token) return null;
+  // No tokens available
+  if (!access_token && !refresh_token) {
+    return {
+      access_token: null,
+      refresh_token: null,
+      success: false,
+    };
+  }
 
+  // Try validating the access token
   const {
     data: { user },
     error,
   } = await supabaseClient.auth.getUser(access_token);
 
-  if ((error || !user) && refresh_token) {
+  // Access token is valid - return existing tokens
+  if (!error && user) {
+    return {
+      access_token: access_token || null,
+      refresh_token: refresh_token || null,
+      success: true,
+    };
+  }
+
+  // Access token failed, try refresh token
+  if (refresh_token) {
     const { data, error: refreshError } =
       await supabaseClient.auth.refreshSession({
         refresh_token,
       });
 
-    if (refreshError || !data?.user || !data?.session) return null;
-    return { session: data.session };
+    // Refresh successful - return new tokens
+    if (!refreshError && data?.user && data?.session) {
+      return {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        success: true,
+      };
+    }
   }
 
-  return { session: null };
+  // Both access token and refresh token failed
+  return {
+    access_token: null,
+    refresh_token: null,
+    success: false,
+  };
 }
 
 type AuthUser = User | null;

@@ -36,6 +36,29 @@ function PageContent() {
   const [detailedSettlements, setDetailedSettlements] =
     useState<DetailedSettlements | null>(null);
 
+  const [isCreateRecurringModalOpen, setIsCreateRecurringModalOpen] =
+    useState<boolean>(false);
+  const [recurringInterval, setRecurringInterval] = useState<string>("daily");
+  const [recurringStartDate, setRecurringStartDate] = useState<string>("");
+
+  const createRecurringTransaction = async () => {
+    await fetch("/api/protected/recurringTransaction/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transactionOwnerId,
+        title: transactionTitle,
+        amount: transactionAmount,
+        interval: recurringInterval,
+        startDate: new Date(recurringStartDate),
+        splits: [...splitWithIds].map((id) => ({
+          groupMemberId: id,
+          amount: transactionAmount / splitWithIds.size,
+        })),
+      }),
+    });
+  };
+
   // ----- fetching group data -----
   useEffect(() => {
     const fetchGroupWithGroupMembers = async () => {
@@ -204,12 +227,20 @@ function PageContent() {
         <div className="flex-1 bg-white p-6 rounded shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Transaction History</h2>
-            <button
-              onClick={() => setIsCreateTransactionModalOpen(true)}
-              className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-            >
-              Create Transaction
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsCreateTransactionModalOpen(true)}
+                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                Create Transaction
+              </button>
+              <button
+                onClick={() => setIsCreateRecurringModalOpen(true)}
+                className="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+              >
+                Create Recurring
+              </button>
+            </div>
           </div>
 
           {transactions.length === 0 ? (
@@ -317,6 +348,106 @@ function PageContent() {
                   setIsCreateTransactionModalOpen(false);
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isCreateRecurringModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h1 className="text-xl font-semibold mb-4">
+              New Recurring Transaction
+            </h1>
+
+            <input
+              placeholder="Enter name of purchase"
+              type="text"
+              value={transactionTitle}
+              onChange={(e) => setTransactionTitle(e.target.value)}
+              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
+            <input
+              placeholder="Enter amount"
+              type="number"
+              value={transactionAmount}
+              onChange={(e) => setTransactionAmount(Number(e.target.value))}
+              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
+            <div className="mb-3">
+              <h2 className="font-medium mb-1">Who Paid?</h2>
+              <select
+                value={transactionOwnerId}
+                onChange={(e) => setTransactionOwnerId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Select payer</option>
+                {groupMembers.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nickname}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <h2 className="font-medium mb-1">Interval</h2>
+              <select
+                value={recurringInterval}
+                onChange={(e) => setRecurringInterval(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <h2 className="font-medium mb-1">Start Date</h2>
+              <input
+                type="date"
+                value={recurringStartDate}
+                onChange={(e) => setRecurringStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            <div className="mb-4">
+              <h2 className="font-medium mb-1">Select People to Split With</h2>
+              {groupMembers.map((groupMember) => (
+                <label
+                  key={groupMember.id}
+                  className="flex items-center gap-2 mb-1"
+                >
+                  <input
+                    type="checkbox"
+                    checked={splitWithIds.has(groupMember.id)}
+                    onChange={() => toggleMember(groupMember.id)}
+                  />
+                  <span>{groupMember.nickname}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsCreateRecurringModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await createRecurringTransaction();
+                  setIsCreateRecurringModalOpen(false);
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
               >
                 Submit
               </button>

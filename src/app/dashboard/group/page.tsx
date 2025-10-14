@@ -6,7 +6,7 @@ import {
   GroupMember,
   DetailedTransaction,
   DetailedSettlements,
-} from "./types";
+} from "@/types";
 
 function PageContent() {
   // const router = useRouter();

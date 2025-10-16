@@ -1,19 +1,19 @@
 "use client";
 import { Suspense, useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Group,
   GroupMember,
   DetailedTransaction,
   DetailedSettlements,
-} from "./types";
+} from "@/types";
 
 function PageContent() {
   // const router = useRouter();
 
   // fetch userId from URL
-  const searchParams = useSearchParams();
-  const groupId = searchParams.get("groupId");
+  const params = useParams();
+  const groupId = params.groupId as string;
 
   const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] =
     useState<boolean>(false);

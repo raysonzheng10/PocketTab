@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseClient } from "@/app/utils/supabaseClient";
 import { OtpForm } from "./OtpForm";
 import { EmailForm } from "./EmailForm";
-import { ErrorCard } from "./basics/ErrorCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-export default function LoginForm() {
+export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
@@ -71,17 +72,20 @@ export default function LoginForm() {
       setError(result.error);
       setIsLoading(false);
     } else {
-      const destination = redirectTo
-        ? decodeURIComponent(redirectTo)
-        : "/dashboard";
+      const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
       router.push(destination);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md border border-blue-100">
-        <ErrorCard message={error} />
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {isOtpSent ? (
           <OtpForm

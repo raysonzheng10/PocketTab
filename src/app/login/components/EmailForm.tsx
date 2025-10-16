@@ -1,4 +1,13 @@
-import { Button } from "./basics/Button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface EmailFormProps {
   email: string;
@@ -14,27 +23,23 @@ export function EmailForm({
   isLoading,
 }: EmailFormProps) {
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+    <Card className="w-full max-w-md shadow-lg">
+      <CardHeader className="space-y-3 text-center">
+        <CardTitle className="text-3xl font-bold tracking-tight">
           Login to Divvy
-        </h1>
-        <p className="text-sm text-gray-600 leading-relaxed max-w-md mx-auto">
+        </CardTitle>
+        <CardDescription>
           Enter your email below, and we will send your login code. Use that
           code on your next step.
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium">
             Email address
-          </label>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          </Label>
+          <Input
             id="email"
             type="email"
             value={email}
@@ -42,17 +47,23 @@ export function EmailForm({
             placeholder="you@example.com"
             autoComplete="email"
             autoFocus
+            className="h-11"
           />
         </div>
 
-        <Button onClick={onSendOtp} isLoading={isLoading}>
+        <Button
+          onClick={onSendOtp}
+          disabled={isLoading}
+          className="w-full h-11"
+          size="lg"
+        >
           {isLoading ? "Sending code..." : "Send login code"}
         </Button>
-      </div>
 
-      <p className="text-xs text-center text-gray-500">
-        By continuing, you agree to receive a one-time code via email
-      </p>
-    </div>
+        <p className="text-xs text-center text-muted-foreground pt-2">
+          By continuing, you agree to receive a one-time code via email
+        </p>
+      </CardContent>
+    </Card>
   );
 }

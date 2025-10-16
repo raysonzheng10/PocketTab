@@ -1,16 +1,3 @@
-export interface Group {
-  name: string | null;
-  description: string | null;
-  id: string;
-  createdAt: Date;
-}
-
-export interface GroupMember {
-  id: string;
-  createdAt: Date;
-  nickname: string;
-}
-
 export interface DetailedTransaction {
   id: string;
   createdAt: Date;

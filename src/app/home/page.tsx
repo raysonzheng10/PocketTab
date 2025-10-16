@@ -1,11 +1,11 @@
 "use client";
 import { Suspense } from "react";
-import Login from "./components/Login";
+import Home from "./components/Home";
 
 export default function Page() {
   return (
     <Suspense fallback={<></>}>
-      <Login />
+      <Home />
     </Suspense>
   );
 }

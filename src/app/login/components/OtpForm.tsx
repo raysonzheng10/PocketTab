@@ -1,6 +1,15 @@
-import { Button } from "./basics/Button";
 import { useRef } from "react";
 import { isDigit } from "@/app/utils/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface OtpFormProps {
   otp: string;
@@ -18,43 +27,45 @@ export function OtpForm({
   isLoading,
 }: OtpFormProps) {
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+    <Card className="w-full max-w-md shadow-lg">
+      <CardHeader className="space-y-3 text-center">
+        <CardTitle className="text-3xl font-bold tracking-tight">
           Enter your login code
-        </h1>
-        <p className="text-sm text-gray-600 leading-relaxed max-w-md mx-auto">
+        </CardTitle>
+        <CardDescription>
           Check your email for a 6-digit code from Supabase Auth and enter it
           here
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="otp"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="otp" className="text-sm font-medium">
             Verification code
-          </label>
+          </Label>
           <OtpInput otp={otp} setOtp={setOtp} />
         </div>
 
-        <Button onClick={onVerify} isLoading={isLoading}>
+        <Button
+          onClick={onVerify}
+          disabled={isLoading}
+          className="w-full h-11"
+          size="lg"
+        >
           {isLoading ? "Verifying..." : "Verify code"}
         </Button>
-      </div>
 
-      <p className="text-xs text-center text-gray-500">
-        Didn&apos;t receive a code?{" "}
-        <button
-          onClick={onResendCode}
-          className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
-        >
-          Resend code
-        </button>
-      </p>
-    </div>
+        <p className="text-xs text-center text-muted-foreground pt-2">
+          Didn&apos;t receive a code?{" "}
+          <button
+            onClick={onResendCode}
+            className="text-primary hover:underline font-medium"
+          >
+            Resend code
+          </button>
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -119,7 +130,7 @@ function OtpInput({ otp, setOtp }: OtpInputProps) {
   return (
     <div className="flex gap-2 justify-between">
       {otpArray.map((digit, index) => (
-        <input
+        <Input
           className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           key={index}
           ref={(el) => {

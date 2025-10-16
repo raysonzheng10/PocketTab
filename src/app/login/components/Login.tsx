@@ -72,9 +72,7 @@ export default function Login() {
       setError(result.error);
       setIsLoading(false);
     } else {
-      const destination = redirectTo
-        ? decodeURIComponent(redirectTo)
-        : "/dashboard";
+      const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
       router.push(destination);
     }
   };

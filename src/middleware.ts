@@ -54,7 +54,7 @@ export async function middleware(req: NextRequest) {
 
   // log the user in if they are in landing or login page
   if (pathname === "/" || pathname.startsWith("/login")) {
-    url.pathname = "/dashboard";
+    url.pathname = "/home";
     res = NextResponse.redirect(url);
   } else {
     // All other routes: allow

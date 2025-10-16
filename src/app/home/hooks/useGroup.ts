@@ -4,6 +4,7 @@ import type { Group } from "@/types";
 export const useGroups = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -17,11 +18,12 @@ export const useGroups = () => {
         err instanceof Error ? err.message : "Unknown error fetching groups",
       );
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchGroups();
   }, [fetchGroups]);
 
-  return { groups, fetchGroups, error };
+  return { groups, fetchGroups, error, loading };
 };

@@ -4,6 +4,7 @@ import type { User } from "@/types";
 export const useUser = () => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -18,9 +19,10 @@ export const useUser = () => {
           err instanceof Error ? err.message : "Unknown error fetching user",
         );
       }
+      setLoading(false);
     };
     fetchUser();
   }, []);
 
-  return { user, error };
+  return { user, error, loading };
 };

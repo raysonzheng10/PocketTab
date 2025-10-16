@@ -1,28 +1,44 @@
-import { useRouter } from "next/router";
-import { useUser } from "./hooks/useUser";
-import { useGroups } from "./hooks/useGroup";
-import { GroupList } from "./components/GroupList";
-import { ErrorMessage } from "./components/ErrorMessage";
+"use client";
+import { useRouter } from "next/navigation";
+// import { useUser } from "../hooks/useUser";
+import { useGroups } from "../hooks/useGroup";
+import { GroupList } from "./GroupList";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "../hooks/useUser";
 
 export default function Home() {
   const router = useRouter();
-  const { user, error: userError } = useUser();
-  const { groups, fetchGroups, error: groupsError } = useGroups();
+  const { error: userError } = useUser();
+  const {
+    groups,
+    fetchGroups,
+    error: groupsError,
+    loading: groupsLoading,
+  } = useGroups();
+  const [error, setError] = useState<string>("");
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/protected/auth/clearToken", {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Failed to log out");
-      router.push("/");
-    } catch (err: unknown) {
-      console.error(err);
-    }
-  };
+  useEffect(() => {
+    if (userError) setError(userError);
+    else if (groupsError) setError(groupsError);
+  }, [userError, groupsError]);
+
+  // const handleLogout = async () => {
+  //   try {
+  //     const res = await fetch("/api/protected/auth/clearToken", {
+  //       method: "POST",
+  //     });
+  //     if (!res.ok) throw new Error("Failed to log out");
+  //     router.push("/");
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   const handleMoveToGroupPage = (groupId: string) =>
-    router.push(`/dashboard/group?groupId=${groupId}`);
+    router.push(`/home/group/${groupId}`);
 
   const handleCreateNewGroup = async () => {
     try {
@@ -33,42 +49,54 @@ export default function Home() {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to create group");
       fetchGroups();
-    } catch (err: unknown) {
+    } catch (err) {
       console.error(err);
     }
   };
 
-  if (userError) return <ErrorMessage message={userError} />;
-  if (!user) return <p className="text-center mt-10">Loading user...</p>;
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-6">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Welcome, {user.email}
-        </h2>
+    <div className="flex min-h-screen bg-gray-50">
+      <div className="flex-1 p-8">
+        <div className="max-w-4xl mx-auto">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        {groupsError && <ErrorMessage message={groupsError} />}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Your Groups
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Manage and access your groups
+                </p>
+              </div>
+              <button
+                onClick={handleCreateNewGroup}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+              >
+                <Plus className="h-4 w-4" />
+                Create Group
+              </button>
+            </div>
 
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-700">Your Groups</h3>
-          <button
-            onClick={handleCreateNewGroup}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            Create New Group
-          </button>
+            {/* Groups List / Skeleton */}
+            {groupsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full rounded-md" />
+                ))}
+              </div>
+            ) : (
+              <GroupList groups={groups} onSelect={handleMoveToGroupPage} />
+            )}
+          </div>
         </div>
-
-        <GroupList groups={groups} onSelect={handleMoveToGroupPage} />
       </div>
-
-      <button
-        onClick={handleLogout}
-        className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200 mt-6"
-      >
-        Logout
-      </button>
     </div>
   );
 }

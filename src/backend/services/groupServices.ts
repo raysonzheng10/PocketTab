@@ -1,3 +1,4 @@
+import { Group, GroupMember } from "@/types";
 import { prisma } from "../db";
 import {
   getGroupMemberByUserIdAndGroupId,
@@ -6,8 +7,6 @@ import {
 } from "../repositories/groupMemberRepo";
 import { getGroupById } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
-import { GroupMember } from "@/app/dashboard/group/types";
-import { Group } from "@/app/dashboard/group/types";
 
 export async function getGroupWithGroupMembersByGroupId(groupId: string) {
   const group = await getGroupById(groupId);

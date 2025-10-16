@@ -6,7 +6,7 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleLoginClick = async () => {
-    router.push("/dashboard");
+    router.push("/home");
   };
 
   return (

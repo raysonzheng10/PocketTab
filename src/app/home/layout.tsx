@@ -68,7 +68,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
           lg:translate-x-0
         `}
       >
-        <Navbar onNavigate={handleCloseMobileMenu} />
+        <Navbar onNavigate={handleCloseMobileMenu} setError={setError} />
       </div>
 
       {/* Main Content Area */}

@@ -8,9 +8,10 @@ import { useState } from "react";
 
 interface NavbarProps {
   onNavigate?: () => void;
+  setError: (error: string) => void;
 }
 
-export function Navbar({ onNavigate }: NavbarProps) {
+export function Navbar({ onNavigate, setError }: NavbarProps) {
   const { user, loading } = useUser();
   const [isLogoutLoading, setIsLogoutLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -37,8 +38,8 @@ export function Navbar({ onNavigate }: NavbarProps) {
       });
       if (!res.ok) throw new Error("Failed to log out");
       router.push("/");
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError("Failed to log out.");
       setIsLogoutLoading(false);
     }
   };

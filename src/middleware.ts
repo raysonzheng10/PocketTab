@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
   if (!success) {
     let res: NextResponse;
 
-    if (pathname.startsWith("/dashboard")) {
+    if (pathname.startsWith("/home")) {
       // Protect /dashboard and redirect to login
       url.pathname = "/login";
       res = NextResponse.redirect(url);

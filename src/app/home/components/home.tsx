@@ -8,19 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Home() {
   const router = useRouter();
   const { groups, fetchGroups, loading: groupsLoading } = useGroups();
-
-  // const handleLogout = async () => {
-  //   try {
-  //     const res = await fetch("/api/protected/auth/clearToken", {
-  //       method: "POST",
-  //     });
-  //     if (!res.ok) throw new Error("Failed to log out");
-  //     router.push("/");
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   const handleMoveToGroupPage = (groupId: string) =>
     router.push(`/home/group/${groupId}`);
 

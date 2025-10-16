@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Divvy.app",
+  title: "PocketTab.app",
 };
 
 export default function RootLayout({

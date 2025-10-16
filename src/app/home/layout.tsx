@@ -30,7 +30,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   const getMobileTitle = () => {
     if (pathname === "/home") return "Manage Groups";
     if (pathname === "/home/settings") return "Account Settings";
-    return "Divvy";
+    return "PocketTab";
   };
 
   // Handle user errors

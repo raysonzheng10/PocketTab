@@ -1,468 +1,298 @@
 "use client";
-import { Suspense, useState, useEffect, useCallback } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useError } from "../../context/ErrorContext";
+import { useGroup } from "./context/GroupContext";
 import {
-  Group,
-  GroupMember,
-  DetailedTransaction,
-  DetailedSettlements,
-} from "@/types";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Copy, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function PageContent() {
-  // const router = useRouter();
+  const { setError } = useError();
+  const {
+    group,
+    groupMembers,
+    groupLoading,
+    transactions,
+    transactionsLoading,
+    settlements,
+    settlementsLoading,
+    error: groupContextError,
+  } = useGroup();
 
-  // fetch userId from URL
+  const [isBalanceDetailsOpen, setIsBalanceDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    setError(groupContextError);
+  }, [groupContextError, setError]);
+
   const params = useParams();
   const groupId = params.groupId as string;
 
-  const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] =
-    useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-
-  const [group, setGroup] = useState<Group | null>(null);
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
-
-  const [transactionTitle, setTransactionTitle] = useState<string>("");
-  const [transactionAmount, setTransactionAmount] = useState<number>(0);
-  const [transactionOwnerId, setTransactionOwnerId] = useState<string>("");
-
-  // TODO: implement variable splits in expenses
-  // const [expenses, setExpenses] = useState<Expense[]>([]);
-
-  const [splitWithIds, setSplitWithIds] = useState<Set<string>>(new Set());
-
-  const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
-
-  const [detailedSettlements, setDetailedSettlements] =
-    useState<DetailedSettlements | null>(null);
-
-  const [isCreateRecurringModalOpen, setIsCreateRecurringModalOpen] =
-    useState<boolean>(false);
-  const [recurringInterval, setRecurringInterval] = useState<string>("daily");
-  const [recurringStartDate, setRecurringStartDate] = useState<string>("");
-
-  const createRecurringTransaction = async () => {
-    await fetch("/api/protected/recurringTransaction/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        transactionOwnerId,
-        title: transactionTitle,
-        amount: transactionAmount,
-        interval: recurringInterval,
-        startDate: new Date(recurringStartDate),
-        splits: [...splitWithIds].map((id) => ({
-          groupMemberId: id,
-          amount: transactionAmount / splitWithIds.size,
-        })),
-      }),
-    });
-  };
-
-  // ----- fetching group data -----
-  useEffect(() => {
-    const fetchGroupWithGroupMembers = async () => {
-      const res = await fetch(`/api/protected/group/${groupId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setGroup(data.group);
-        setGroupMembers(data.groupMembers);
-      }
-    };
-
-    fetchGroupWithGroupMembers();
-  }, [groupId]);
-
-  // ----- fetching group transactions ------
-  const fetchTransactions = useCallback(async () => {
-    const res = await fetch(`/api/protected/transaction/${groupId}`, {
-      method: "GET",
-    });
-    const data = await res.json();
-
-    if (data.error) {
-      setError(data.error);
-    } else {
-      setTransactions(data.transactions);
-    }
-  }, [groupId]);
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
-
-  // ----- fetching user incoming/outgoing settlements ------
-  const fetchSettlements = useCallback(async () => {
-    const res = await fetch(`/api/protected/settlement/${groupId}`, {
-      method: "GET",
-    });
-    const data = await res.json();
-
-    if (data.error) {
-      setError(data.error);
-    } else {
-      setDetailedSettlements(data);
-    }
-  }, [groupId]);
-
-  useEffect(() => {
-    fetchSettlements();
-  }, [fetchSettlements]);
-
-  const toggleMember = (id: string) => {
-    setSplitWithIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-
-      return next;
-    });
-  };
-
-  const createTransaction = async () => {
-    // make the purchase object
-    await fetch("/api/protected/transaction/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        transactionOwnerId: transactionOwnerId,
-        title: transactionTitle,
-        amount: transactionAmount,
-        splits: [...splitWithIds].map((id) => ({
-          groupMemberId: id,
-          amount: transactionAmount / splitWithIds.size,
-        })),
-      }),
-    });
-
-    fetchTransactions();
-  };
-
-  //TODO: make a loading component
-  if (error) return <p className="text-center mt-10">Error: {error}</p>;
-  if (!group) return <p className="text-center mt-10">Loading group...</p>;
+  const recentTransactions = transactions.slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-6">
-      {/* Group Info Row */}
-      <div className="bg-white p-6 rounded shadow w-full max-w-4xl mb-6">
-        <h1 className="text-2xl font-bold mb-1">{group.name}</h1>
-        <p className="text-gray-600 mb-4">{group.description}</p>
-        <h2 className="text-md font-semibold mb-2">Group Members</h2>
-        <div className="flex flex-wrap gap-3">
-          {groupMembers.map((member) => (
-            <div
-              key={member.id}
-              className="bg-gray-100 px-3 py-1 rounded-md text-sm"
-            >
-              {member.nickname || "No name"}
-            </div>
-          ))}
-        </div>
-        {/* Invite Link Section */}
-        <div className="mt-4">
-          <h2 className="text-md font-semibold mb-1">Invite Link</h2>
-          <div className="flex items-center gap-2">
-            <input
-              readOnly
-              value={`${window.location.origin}/join?groupId=${groupId}`}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-gray-50"
-            />
-            <button
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  `${window.location.origin}/join?groupId=${groupId}`,
-                )
-              }
-              className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Settlements + Transactions Row */}
-      <div className="flex flex-row gap-6 w-full max-w-4xl">
-        {/* Settlements Panel */}
-        <div className="flex-1 bg-white p-6 rounded shadow">
-          <h2 className="text-lg font-semibold mb-2">Settlements</h2>
-          {detailedSettlements ? (
-            <div>
-              <p>
-                {detailedSettlements.total > 0
-                  ? `You are owed $${detailedSettlements.total.toFixed(2)}`
-                  : `You owe $${Math.abs(detailedSettlements.total).toFixed(2)}`}{" "}
-              </p>
-              <ul className="space-y-2">
-                {Object.entries(detailedSettlements.settlements).map(
-                  ([memberId, { nickname, amount }]) => {
-                    if (amount === 0) return null;
-
-                    return (
-                      <li key={memberId} className="text-sm text-gray-700">
-                        {amount > 0
-                          ? `${nickname} owes you $${amount.toFixed(2)}`
-                          : `You owe ${nickname} $${Math.abs(amount).toFixed(2)}`}
-                      </li>
-                    );
-                  },
-                )}
-              </ul>
-            </div>
-          ) : (
-            <p className="text-gray-500">No balances to show.</p>
-          )}
-        </div>
-
-        {/* Transactions Panel */}
-        <div className="flex-1 bg-white p-6 rounded shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Transaction History</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsCreateTransactionModalOpen(true)}
-                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-              >
-                Create Transaction
-              </button>
-              <button
-                onClick={() => setIsCreateRecurringModalOpen(true)}
-                className="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
-              >
-                Create Recurring
-              </button>
-            </div>
-          </div>
-
-          {transactions.length === 0 ? (
-            <p className="text-gray-500">No transactions yet.</p>
-          ) : (
-            <ul className="space-y-4">
-              {transactions.map((transaction) => (
-                <li
-                  key={transaction.id}
-                  className="border border-gray-300 p-4 rounded-md shadow-sm"
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <h3 className="text-md font-bold">{transaction.title}</h3>
-                    <span className="text-green-600 font-semibold">
-                      ${transaction.amount}
-                    </span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Compact Group Info Header */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                {groupLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Paid by: {transaction.groupMemberNickname}
+                ) : (
+                  <>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      {group?.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      {group?.description}
+                    </CardDescription>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            {/* Members - Compact */}
+            <div>
+              {groupLoading ? (
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-6 w-20 rounded-full" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {groupMembers.map((member) => (
+                    <Badge
+                      key={member.id}
+                      variant="secondary"
+                      className="px-2 py-0.5 text-xs"
+                    >
+                      {member.nickname || "No name"}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Compact Invite Link */}
+            <div className="flex gap-2">
+              <Input
+                readOnly
+                value={
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/join?groupId=${groupId}`
+                    : ""
+                }
+                className="font-mono text-xs h-8"
+              />
+              <Button
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/join?groupId=${groupId}`,
+                    );
+                  }
+                }}
+                size="sm"
+                variant="outline"
+                className="h-8"
+              >
+                <Copy className="w-3 h-3" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Balance Card - Main Focus */}
+        <Card className="shadow-lg border-2">
+          <CardHeader>
+            <CardTitle className="text-lg">Balance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {settlementsLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ) : settlements ? (
+              <div className="space-y-4">
+                {/* Large Balance Display */}
+                <div>
+                  <div
+                    className={`text-5xl font-bold ${
+                      settlements.total >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {settlements.total >= 0 ? "+" : "-"}$
+                    {Math.abs(settlements.total).toFixed(2)}
+                  </div>
+                  <p className="text-muted-foreground mt-2">
+                    {settlements.total > 0
+                      ? "You are owed"
+                      : settlements.total < 0
+                        ? "You owe"
+                        : "All settled up"}
                   </p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(transaction.createdAt).toLocaleDateString(
-                      undefined,
-                      {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      },
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                </div>
+
+                {/* Collapsible Balance Details */}
+                <Collapsible
+                  open={isBalanceDetailsOpen}
+                  onOpenChange={setIsBalanceDetailsOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between">
+                      <span className="text-sm font-medium">View Details</span>
+                      {isBalanceDetailsOpen ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
+                    <Separator className="mb-3" />
+                    <div className="space-y-2">
+                      {Object.entries(settlements.settlements).map(
+                        ([memberId, { nickname, amount }]) => {
+                          if (amount === 0) return null;
+
+                          return (
+                            <div
+                              key={memberId}
+                              className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                            >
+                              <span className="text-sm font-medium">
+                                {nickname}
+                              </span>
+                              <span
+                                className={`text-sm font-semibold ${
+                                  amount > 0 ? "text-green-600" : "text-red-600"
+                                }`}
+                              >
+                                {amount > 0
+                                  ? `owes you $${amount.toFixed(2)}`
+                                  : `you owe $${Math.abs(amount).toFixed(2)}`}
+                              </span>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">
+                No balances to show
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Transactions Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {transactionsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 rounded-lg border">
+                    <div className="flex justify-between items-start mb-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-36" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentTransactions.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                No transactions yet
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recentTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold">{transaction.title}</h4>
+                      <span className="text-lg font-bold text-green-600">
+                        ${transaction.amount}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Paid by {transaction.groupMemberNickname}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(transaction.createdAt).toLocaleDateString(
+                          undefined,
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {transactions.length > 3 && (
+                  <Button variant="ghost" className="w-full">
+                    View All Transactions ({transactions.length})
+                  </Button>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Modal stays unchanged */}
-      {isCreateTransactionModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-            <h1 className="text-xl font-semibold mb-4">New Transaction</h1>
-
-            <input
-              placeholder="Enter name of purchase"
-              type="text"
-              value={transactionTitle}
-              onChange={(e) => setTransactionTitle(e.target.value)}
-              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <input
-              placeholder="Enter amount of purchase"
-              type="number"
-              value={transactionAmount}
-              onChange={(e) => setTransactionAmount(Number(e.target.value))}
-              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <div className="mb-3">
-              <h2 className="font-medium mb-1">Who Paid?</h2>
-              <select
-                value={transactionOwnerId}
-                onChange={(e) => setTransactionOwnerId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select payer</option>
-                {groupMembers.map((groupMember) => (
-                  <option key={groupMember.id} value={groupMember.id}>
-                    {groupMember.nickname}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <h2 className="font-medium mb-1">Select People to Split With</h2>
-              {groupMembers.map((groupMember) => (
-                <label
-                  key={groupMember.id}
-                  className="flex items-center gap-2 mb-1"
-                >
-                  <input
-                    type="checkbox"
-                    checked={splitWithIds.has(groupMember.id)}
-                    onChange={() => toggleMember(groupMember.id)}
-                  />
-                  <span>{groupMember.nickname}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsCreateTransactionModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await createTransaction();
-                  setIsCreateTransactionModalOpen(false);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isCreateRecurringModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-            <h1 className="text-xl font-semibold mb-4">
-              New Recurring Transaction
-            </h1>
-
-            <input
-              placeholder="Enter name of purchase"
-              type="text"
-              value={transactionTitle}
-              onChange={(e) => setTransactionTitle(e.target.value)}
-              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-
-            <input
-              placeholder="Enter amount"
-              type="number"
-              value={transactionAmount}
-              onChange={(e) => setTransactionAmount(Number(e.target.value))}
-              className="mb-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-
-            <div className="mb-3">
-              <h2 className="font-medium mb-1">Who Paid?</h2>
-              <select
-                value={transactionOwnerId}
-                onChange={(e) => setTransactionOwnerId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Select payer</option>
-                {groupMembers.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nickname}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mb-3">
-              <h2 className="font-medium mb-1">Interval</h2>
-              <select
-                value={recurringInterval}
-                onChange={(e) => setRecurringInterval(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-
-            <div className="mb-3">
-              <h2 className="font-medium mb-1">Start Date</h2>
-              <input
-                type="date"
-                value={recurringStartDate}
-                onChange={(e) => setRecurringStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            <div className="mb-4">
-              <h2 className="font-medium mb-1">Select People to Split With</h2>
-              {groupMembers.map((groupMember) => (
-                <label
-                  key={groupMember.id}
-                  className="flex items-center gap-2 mb-1"
-                >
-                  <input
-                    type="checkbox"
-                    checked={splitWithIds.has(groupMember.id)}
-                    onChange={() => toggleMember(groupMember.id)}
-                  />
-                  <span>{groupMember.nickname}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsCreateRecurringModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await createRecurringTransaction();
-                  setIsCreateRecurringModalOpen(false);
-                }}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* All modal code remains commented as requested */}
+      {/* {isCreateTransactionModalOpen && ( ... )} */}
+      {/* {isCreateRecurringModalOpen && ( ... )} */}
     </div>
   );
 }
 
 export default function Page() {
   return (
-    //! Ensure that this fallback is the same as the fallback for !user
-    <Suspense fallback={<p>Loading group...</p>}>
+    <Suspense fallback={<></>}>
       <PageContent />
     </Suspense>
   );

@@ -1,29 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-// import { useUser } from "../hooks/useUser";
 import { useGroups } from "../hooks/useGroup";
 import { GroupList } from "./GroupList";
-import { useEffect, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUser } from "../hooks/useUser";
 
 export default function Home() {
   const router = useRouter();
-  const { error: userError } = useUser();
-  const {
-    groups,
-    fetchGroups,
-    error: groupsError,
-    loading: groupsLoading,
-  } = useGroups();
-  const [error, setError] = useState<string>("");
-
-  useEffect(() => {
-    if (userError) setError(userError);
-    else if (groupsError) setError(groupsError);
-  }, [userError, groupsError]);
+  const { groups, fetchGroups, loading: groupsLoading } = useGroups();
 
   // const handleLogout = async () => {
   //   try {
@@ -58,13 +42,6 @@ export default function Home() {
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>

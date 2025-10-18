@@ -32,9 +32,13 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const getMobileTitle = () => {
-    if (pathname === "/home") return "Manage Groups";
-    if (pathname === "/home/account") return "Account Settings";
-    return "PocketTab";
+    if (pathname.endsWith("/home")) return "Manage Groups";
+    if (pathname.endsWith("/account")) return "Account Settings";
+    if (pathname.endsWith("/settings")) return "Group Settings";
+    if (pathname.endsWith("/transactions")) return "Transactions";
+    if (pathname.endsWith("/settlements")) return "Settlements";
+    if (pathname.endsWith("/members")) return "Members";
+    return "Dashboard";
   };
 
   const isGroupPage = pathname.startsWith("/home/group");

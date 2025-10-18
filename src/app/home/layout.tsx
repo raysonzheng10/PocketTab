@@ -3,9 +3,10 @@ import { usePathname } from "next/navigation";
 import { ReactNode, useState, useEffect } from "react";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import { UserProvider, useUser } from "./context/UserContext";
-import { Navbar } from "./components/Navbar";
-import { MobileHeader } from "./components/MobileHeader";
-import { ErrorAlert } from "./components/ErrorAlert";
+import GroupNavbar from "./components/Navbar/GroupNavbar";
+import HomeNavbar from "./components/Navbar/HomeNavbar";
+import ErrorAlert from "./components/ErrorAlert";
+import MobileHeader from "./components/MobileHeader";
 
 export default function HomeLayout({
   children,
@@ -29,9 +30,11 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
 
   const getMobileTitle = () => {
     if (pathname === "/home") return "Manage Groups";
-    if (pathname === "/home/settings") return "Account Settings";
+    if (pathname === "/home/account") return "Account Settings";
     return "PocketTab";
   };
+
+  const isGroupPage = pathname.startsWith("/home/group");
 
   // Handle user errors
   useEffect(() => {
@@ -68,7 +71,11 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
           lg:translate-x-0
         `}
       >
-        <Navbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        {isGroupPage ? (
+          <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        ) : (
+          <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        )}
       </div>
 
       {/* Main Content Area */}

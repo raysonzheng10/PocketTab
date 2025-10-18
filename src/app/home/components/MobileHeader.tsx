@@ -7,7 +7,7 @@ interface MobileHeaderProps {
   onToggleMenu: () => void;
 }
 
-export function MobileHeader({
+export default function MobileHeader({
   title,
   isMenuOpen,
   onToggleMenu,

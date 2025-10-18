@@ -1,5 +1,5 @@
 "use client";
-import { GroupProvider } from "./context/GroupContext";
+import { GroupProvider } from "../../context/GroupContext";
 
 export default function HomeLayout({
   children,

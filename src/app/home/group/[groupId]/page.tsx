@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useError } from "../../context/ErrorContext";
-import { useGroup } from "./context/GroupContext";
+import { useGroup } from "../../context/GroupContext";
 import {
   Card,
   CardContent,

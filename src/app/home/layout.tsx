@@ -7,6 +7,7 @@ import GroupNavbar from "./components/Navbar/GroupNavbar";
 import HomeNavbar from "./components/Navbar/HomeNavbar";
 import ErrorAlert from "./components/ErrorAlert";
 import MobileHeader from "./components/MobileHeader";
+import { GroupProvider } from "./context/GroupContext";
 
 export default function HomeLayout({
   children,
@@ -14,11 +15,13 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <UserProvider>
-      <ErrorProvider>
-        <HomeLayoutContent>{children}</HomeLayoutContent>
-      </ErrorProvider>
-    </UserProvider>
+    <ErrorProvider>
+      <UserProvider>
+        <GroupProvider>
+          <HomeLayoutContent>{children}</HomeLayoutContent>
+        </GroupProvider>
+      </UserProvider>
+    </ErrorProvider>
   );
 }
 

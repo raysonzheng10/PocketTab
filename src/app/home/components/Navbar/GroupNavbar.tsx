@@ -1,9 +1,18 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Settings } from "lucide-react";
+import {
+  Users,
+  Settings,
+  ArrowLeft,
+  CreditCard,
+  DollarSign,
+  Home,
+} from "lucide-react";
 import { useUser } from "../../context/UserContext";
 import NavigationTab from "./NavigationTab";
 import UserLogout from "./UserLogout";
+import { useGroup } from "../../context/GroupContext";
+import { Separator } from "@/components/ui/separator";
 
 interface NavbarProps {
   onNavigate?: () => void;
@@ -12,19 +21,53 @@ interface NavbarProps {
 
 export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
   const { user, loading: userLoading } = useUser();
+  const { group } = useGroup();
   const router = useRouter();
   const pathname = usePathname();
 
-  const isManageGroupsActive = pathname === "/home";
-  const isAccountSettingsActive = pathname === "/home/settings";
+  const isTransactionsActive = pathname.endsWith("/transactions");
+  const isSettlementsActive = pathname.endsWith("/settlements");
+  const isMembersActive = pathname.endsWith("/members");
+  const isGroupSettingsActive = pathname.endsWith("/settings");
+  const isDashboardActive = !(
+    isTransactionsActive ||
+    isSettlementsActive ||
+    isMembersActive ||
+    isGroupSettingsActive
+  );
 
   const handleNavigateToManageGroups = () => {
     router.push("/home");
     onNavigate?.();
   };
 
-  const handleNavigateToAccountSettings = () => {
-    router.push("/home/settings");
+  const handleNavigateDashboard = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}`);
+    onNavigate?.();
+  };
+
+  const handleNavigateTransactions = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}/transactions`);
+    onNavigate?.();
+  };
+
+  const handleNavigateSettlements = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}/settlements`);
+    onNavigate?.();
+  };
+
+  const handleNavigateMembers = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}/members`);
+    onNavigate?.();
+  };
+
+  const handleNavigateGroupSettings = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}/settings`);
     onNavigate?.();
   };
 
@@ -32,23 +75,52 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-800">GROUP NAV BAR</h1>
+        <h1 className="text-xl font-bold text-gray-800">PocketTab</h1>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-2">
+          {/* Back to Groups */}
           <NavigationTab
-            isActive={isManageGroupsActive}
-            icon={<Users className="h-5 w-5" />}
-            text="Manage Groups"
+            isActive={false} // or some state if needed
+            icon={<ArrowLeft className="h-5 w-5" />}
+            text="Back to Groups"
             onClick={handleNavigateToManageGroups}
           />
+
+          <Separator />
+
+          {/* Group Tabs */}
           <NavigationTab
-            isActive={isAccountSettingsActive}
+            isActive={isDashboardActive}
+            icon={<Home className="h-5 w-5" />}
+            text="Dashboard"
+            onClick={handleNavigateDashboard}
+          />
+          <NavigationTab
+            isActive={isTransactionsActive}
+            icon={<CreditCard className="h-5 w-5" />}
+            text="Transactions"
+            onClick={handleNavigateTransactions}
+          />
+          <NavigationTab
+            isActive={isSettlementsActive}
+            icon={<DollarSign className="h-5 w-5" />}
+            text="Settlements"
+            onClick={handleNavigateSettlements}
+          />
+          <NavigationTab
+            isActive={isMembersActive}
+            icon={<Users className="h-5 w-5" />}
+            text="Members"
+            onClick={handleNavigateMembers}
+          />
+          <NavigationTab
+            isActive={isGroupSettingsActive}
             icon={<Settings className="h-5 w-5" />}
-            text="Account Settings"
-            onClick={handleNavigateToAccountSettings}
+            text="Group Settings"
+            onClick={handleNavigateGroupSettings}
           />
         </div>
       </div>

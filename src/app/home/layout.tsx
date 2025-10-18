@@ -1,8 +1,8 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, useEffect } from "react";
-import { UserProvider, useUser } from "./context/UserContext";
 import { ErrorProvider, useError } from "./context/ErrorContext";
+import { UserProvider, useUser } from "./context/UserContext";
 import { Navbar } from "./components/Navbar";
 import { MobileHeader } from "./components/MobileHeader";
 import { ErrorAlert } from "./components/ErrorAlert";

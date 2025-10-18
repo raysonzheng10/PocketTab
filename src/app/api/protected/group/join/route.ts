@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const { groupId } = body;
 
     // TODO: factor this logic into /service layer
-    const existingGroupMember = getGroupMemberByUserIdAndGroupId(
+    const existingGroupMember = await getGroupMemberByUserIdAndGroupId(
       authUser.id,
       groupId,
     );
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ groupMember: existingGroupMember });
     }
 
-    const newGroupMember = createGroupMember({
+    const newGroupMember = await createGroupMember({
       userId: authUser.id,
       groupId,
       nickname: authUser.email ?? "unknown",

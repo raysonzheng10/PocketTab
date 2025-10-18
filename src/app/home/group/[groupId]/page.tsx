@@ -35,7 +35,7 @@ function PageContent() {
     error: groupContextError,
   } = useGroup();
 
-  const [isBalanceDetailsOpen, setIsBalanceDetailsOpen] = useState(false);
+  // const [isBalanceDetailsOpen, setIsBalanceDetailsOpen] = useState(false);
 
   useEffect(() => {
     setError(groupContextError);
@@ -44,7 +44,7 @@ function PageContent() {
   const params = useParams();
   const groupId = params.groupId as string;
 
-  const recentTransactions = transactions.slice(0, 3);
+  // const recentTransactions = transactions.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
@@ -53,7 +53,7 @@ function PageContent() {
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
+              <div>
                 {groupLoading ? (
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-48" />
@@ -129,94 +129,9 @@ function PageContent() {
         </Card>
 
         {/* Balance Card - Main Focus */}
-        <Card className="shadow-lg border-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {settlementsLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-16 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            ) : settlements ? (
-              <div className="space-y-4">
-                {/* Large Balance Display */}
-                <div>
-                  <div
-                    className={`text-5xl font-bold ${
-                      settlements.total >= 0 ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {settlements.total >= 0 ? "+" : "-"}$
-                    {Math.abs(settlements.total).toFixed(2)}
-                  </div>
-                  <p className="text-muted-foreground mt-2">
-                    {settlements.total > 0
-                      ? "You are owed"
-                      : settlements.total < 0
-                        ? "You owe"
-                        : "All settled up"}
-                  </p>
-                </div>
-
-                {/* Collapsible Balance Details */}
-                <Collapsible
-                  open={isBalanceDetailsOpen}
-                  onOpenChange={setIsBalanceDetailsOpen}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between">
-                      <span className="text-sm font-medium">View Details</span>
-                      {isBalanceDetailsOpen ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3">
-                    <Separator className="mb-3" />
-                    <div className="space-y-2">
-                      {Object.entries(settlements.settlements).map(
-                        ([memberId, { nickname, amount }]) => {
-                          if (amount === 0) return null;
-
-                          return (
-                            <div
-                              key={memberId}
-                              className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                            >
-                              <span className="text-sm font-medium">
-                                {nickname}
-                              </span>
-                              <span
-                                className={`text-sm font-semibold ${
-                                  amount > 0 ? "text-green-600" : "text-red-600"
-                                }`}
-                              >
-                                {amount > 0
-                                  ? `owes you $${amount.toFixed(2)}`
-                                  : `you owe $${Math.abs(amount).toFixed(2)}`}
-                              </span>
-                            </div>
-                          );
-                        },
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                No balances to show
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Recent Transactions Card */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="text-lg">Recent Transactions</CardTitle>
           </CardHeader>
@@ -280,12 +195,8 @@ function PageContent() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
-
-      {/* All modal code remains commented as requested */}
-      {/* {isCreateTransactionModalOpen && ( ... )} */}
-      {/* {isCreateRecurringModalOpen && ( ... )} */}
     </div>
   );
 }

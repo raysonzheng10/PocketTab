@@ -16,7 +16,6 @@ export default function SettlementCard() {
     if (!group) return;
     setNavigateLoading(true);
     router.push(`/home/group/${group.id}/settlements`);
-    // setNavigateLoading(false)
   };
 
   const unsettled = useMemo(() => {
@@ -32,11 +31,13 @@ export default function SettlementCard() {
         <CardHeader className="pb-3">
           <div className="space-y-2">
             <Skeleton className="h-6 w-48" />
-            <div className="flex flex-row-reverse">
-              <Skeleton className="h-20 w-60" />
-            </div>
           </div>
         </CardHeader>
+        <CardContent>
+          <div className="flex flex-row-reverse">
+            <Skeleton className="h-16 w-40" />
+          </div>
+        </CardContent>
       </Card>
     );
 
@@ -47,21 +48,23 @@ export default function SettlementCard() {
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex flex-col">
-          <CardTitle className="text-l flex items-center gap-2">
-            {isSettled
-              ? "You're all settled up!"
-              : positive
-                ? "Others owe you"
-                : "You currently owe"}
-          </CardTitle>
-        </div>
+      <CardHeader className="flex items-center justify-between pb-3">
+        <CardTitle className="text-xl flex items-center gap-2">
+          {isSettled
+            ? "You're all settled up!"
+            : positive
+              ? "Others owe you"
+              : "You currently owe"}
+        </CardTitle>
+        <Button variant="outline" size="sm" onClick={handleNavigateSettlements}>
+          {navigateLoading && <Loader2 className="h-5 w-5 animate-spin" />}
+          See All Settlements
+        </Button>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
         <div
-          className={`flex flex-row-reverse text-5xl font-bold tracking-tight mt-2 ${
+          className={`flex flex-row-reverse items-center text-5xl font-bold tracking-tight mt-2 ${
             isSettled
               ? "text-gray-500"
               : positive
@@ -69,7 +72,7 @@ export default function SettlementCard() {
                 : "text-red-600"
           }`}
         >
-          {isSettled ? "$0.00" : `$${formattedTotal}`}
+          <p>{isSettled ? "$0.00" : `$${formattedTotal}`}</p>
         </div>
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
@@ -79,15 +82,6 @@ export default function SettlementCard() {
                 }`
               : "No unsettled debts"}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-sm text-primary hover:text-primary/80"
-            onClick={handleNavigateSettlements}
-          >
-            {navigateLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-            See Settlements
-          </Button>
         </div>
       </CardContent>
     </Card>

@@ -1,43 +1,18 @@
 "use client";
 import { Suspense, useEffect } from "react";
-// import { useParams } from "next/navigation";
 import { useError } from "../../context/ErrorContext";
 import { useGroup } from "../../context/GroupContext";
-// import {
-//   Card,
-//   CardContent,
-//   CardDescription,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Badge } from "@/components/ui/badge";
-// import { Separator } from "@/components/ui/separator";
-// import {
-//   Collapsible,
-//   CollapsibleContent,
-//   CollapsibleTrigger,
-// } from "@/components/ui/collapsible";
-// import { Copy, Users, ChevronDown, ChevronUp } from "lucide-react";
-// import { Skeleton } from "@/components/ui/skeleton";
 import GroupCard from "./components/dashboard/GroupCard";
 import SettlementCard from "./components/dashboard/SettlementCard";
+import TransactionCard from "./components/dashboard/TransactionCard";
 
 function PageContent() {
   const { setError } = useError();
   const { error: groupContextError } = useGroup();
 
-  // const [isBalanceDetailsOpen, setIsBalanceDetailsOpen] = useState(false);
-
   useEffect(() => {
     setError(groupContextError);
   }, [groupContextError, setError]);
-
-  // const params = useParams();
-  // const groupId = params.groupId as string;
-
-  // const recentTransactions = transactions.slice(0, 3);
 
   return (
     <div className="min-h-screen p-6">
@@ -51,7 +26,7 @@ function PageContent() {
             <SettlementCard />
           </div>
           <div className="flex-1">
-            <SettlementCard />
+            <TransactionCard />
           </div>
         </div>
       </div>

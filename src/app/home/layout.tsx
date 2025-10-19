@@ -6,8 +6,8 @@ import { UserProvider, useUser } from "./context/UserContext";
 import GroupNavbar from "./components/Navbar/GroupNavbar";
 import HomeNavbar from "./components/Navbar/HomeNavbar";
 import ErrorAlert from "./components/ErrorAlert";
-import MobileHeader from "./components/MobileHeader";
 import { GroupProvider } from "./context/GroupContext";
+import MobileHeader from "./components/Navbar/MobileHeader";
 
 export default function HomeLayout({
   children,

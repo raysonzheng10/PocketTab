@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
-  const { user, loading: userLoading } = useUser();
+  const { user, userLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
 

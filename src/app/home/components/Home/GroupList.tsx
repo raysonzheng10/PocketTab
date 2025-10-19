@@ -12,7 +12,7 @@ interface Props {
   onSelect: (groupId: string) => void;
 }
 
-export const GroupList = ({ groups, onSelect }: Props) => {
+export default function GroupList({ groups, onSelect }: Props) {
   if (!groups.length) {
     return (
       <div className="text-center py-8">
@@ -49,4 +49,4 @@ export const GroupList = ({ groups, onSelect }: Props) => {
       ))}
     </div>
   );
-};
+}

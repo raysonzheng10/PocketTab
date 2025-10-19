@@ -20,7 +20,7 @@ interface NavbarProps {
 }
 
 export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
-  const { user, loading: userLoading } = useUser();
+  const { user, userLoading } = useUser();
   const { group } = useGroup();
   const router = useRouter();
   const pathname = usePathname();

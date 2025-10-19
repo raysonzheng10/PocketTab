@@ -22,6 +22,7 @@ import { useGroup } from "../../context/GroupContext";
 // import { Copy, Users, ChevronDown, ChevronUp } from "lucide-react";
 // import { Skeleton } from "@/components/ui/skeleton";
 import GroupCard from "./components/dashboard/GroupCard";
+import SettlementCard from "./components/dashboard/SettlementCard";
 
 function PageContent() {
   const { setError } = useError();
@@ -39,79 +40,20 @@ function PageContent() {
   // const recentTransactions = transactions.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Compact Group Info Header */}
+    <div className="min-h-screen p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Group header always on its own row */}
         <GroupCard />
 
-        {/* Balance Card - Main Focus */}
-
-        {/* Recent Transactions Card */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {transactionsLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-4 rounded-lg border">
-                    <div className="flex justify-between items-start mb-2">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-6 w-16" />
-                    </div>
-                    <div className="space-y-1">
-                      <Skeleton className="h-3 w-24" />
-                      <Skeleton className="h-3 w-36" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : recentTransactions.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No transactions yet
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {recentTransactions.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">{transaction.title}</h4>
-                      <span className="text-lg font-bold text-green-600">
-                        ${transaction.amount}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">
-                        Paid by {transaction.groupMemberNickname}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(transaction.createdAt).toLocaleDateString(
-                          undefined,
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {transactions.length > 3 && (
-                  <Button variant="ghost" className="w-full">
-                    View All Transactions ({transactions.length})
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card> */}
+        {/* Settlement cards layout */}
+        <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
+          <div className="flex-1">
+            <SettlementCard />
+          </div>
+          <div className="flex-1">
+            <SettlementCard />
+          </div>
+        </div>
       </div>
     </div>
   );

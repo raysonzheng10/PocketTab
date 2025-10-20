@@ -19,7 +19,7 @@ export default function MobileHeader({
         onClick={onToggleMenu}
         className="p-2 hover:bg-gray-100 rounded-md transition"
       >
-        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <Menu className="h-6 w-6" />
       </button>
     </div>
   );

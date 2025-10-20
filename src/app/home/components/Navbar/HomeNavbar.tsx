@@ -1,9 +1,10 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Settings } from "lucide-react";
+import { Users, Settings, X } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 import NavigationTab from "./NavigationTab";
 import UserLogout from "./UserLogout";
+import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
   onNavigate?: () => void;
@@ -31,8 +32,16 @@ export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="flex flex-row justify-between items-center p-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-800">PocketTab</h1>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="lg:hidden"
+          onClick={onNavigate}
+        >
+          <X className="h-6 w-6" />
+        </Button>
       </div>
 
       {/* Navigation Tabs */}

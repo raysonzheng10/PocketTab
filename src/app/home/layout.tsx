@@ -53,9 +53,10 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       <ErrorAlert error={error} onDismiss={clearError} />
 
+      {/* Mobile header is z-40 */}
       <MobileHeader
         title={getMobileTitle()}
         isMenuOpen={isMobileMenuOpen}
@@ -72,12 +73,20 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
       {/* Sidebar - Desktop always visible, Mobile slide-in */}
       <div
         className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          transform transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0
+         fixed lg:hidden inset-y-0 right-0 z-50
+          transform transition-transform duration-250 ease-in-out
+          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
+        {isGroupPage ? (
+          <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        ) : (
+          <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-64 shrink-0">
         {isGroupPage ? (
           <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
         ) : (

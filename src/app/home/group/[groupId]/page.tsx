@@ -15,7 +15,7 @@ function PageContent() {
   }, [groupContextError, setError]);
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="h-screen overflow-y-auto p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Group header always on its own row */}
         <GroupCard />

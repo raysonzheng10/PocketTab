@@ -59,7 +59,6 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
       {/* Mobile header is z-40 */}
       <MobileHeader
         title={getMobileTitle()}
-        isMenuOpen={isMobileMenuOpen}
         onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 

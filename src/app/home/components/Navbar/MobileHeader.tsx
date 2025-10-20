@@ -1,15 +1,13 @@
 "use client";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface MobileHeaderProps {
   title: string;
-  isMenuOpen: boolean;
   onToggleMenu: () => void;
 }
 
 export default function MobileHeader({
   title,
-  isMenuOpen,
   onToggleMenu,
 }: MobileHeaderProps) {
   return (

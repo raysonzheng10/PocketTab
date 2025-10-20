@@ -17,7 +17,7 @@ export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
   const pathname = usePathname();
 
   const isManageGroupsActive = pathname === "/home";
-  const isAccountSettingsActive = pathname === "/home/settings";
+  const isAccountSettingsActive = pathname === "/home/account";
 
   const handleNavigateToManageGroups = () => {
     router.push("/home");
@@ -25,7 +25,7 @@ export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
   };
 
   const handleNavigateToAccountSettings = () => {
-    router.push("/home/settings");
+    router.push("/home/account");
     onNavigate?.();
   };
 

@@ -32,48 +32,60 @@ export default function Login() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      setError("OTP is required");
-      return;
-    }
+    try {
+      if (!otp) {
+        setError("OTP is required");
+        return;
+      }
 
-    setError("");
-    setIsLoading(true);
-    const { data, error } = await supabaseClient.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "email",
-    });
+      setError("");
+      setIsLoading(true);
 
-    // return if OTP verification failed
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    } else if (!data?.user) {
-      setError("Failed to retrieve user from OTP verification");
-      setIsLoading(false);
-      return;
-    }
+      const { data, error } = await supabaseClient.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
 
-    await fetch("/api/auth/setToken", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        access_token: data.session?.access_token,
-        refresh_token: data.session?.refresh_token,
-      }),
-    });
+      if (error) {
+        setError(error.message);
+        return;
+      }
 
-    const res = await fetch("/api/protected/user/upsert", { method: "POST" });
-    const result = await res.json();
+      if (!data?.user) {
+        setError("Failed to retrieve user from OTP verification");
+        return;
+      }
 
-    if (result?.error) {
-      setError(result.error);
-      setIsLoading(false);
-    } else {
+      const setTokenRes = await fetch("/api/auth/setToken", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: data.session?.access_token,
+          refresh_token: data.session?.refresh_token,
+        }),
+      });
+
+      if (!setTokenRes.ok) {
+        const text = await setTokenRes.text();
+        throw new Error(`Failed to set tokens: ${text}`);
+      }
+
+      const upsertRes = await fetch("/api/protected/user/upsert", {
+        method: "POST",
+      });
+      const result = await upsertRes.json();
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
       const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
       router.push(destination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsLoading(false);
     }
   };
 

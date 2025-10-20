@@ -1,11 +1,13 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, useEffect } from "react";
-import { UserProvider, useUser } from "./context/UserContext";
 import { ErrorProvider, useError } from "./context/ErrorContext";
-import { Navbar } from "./components/Navbar";
-import { MobileHeader } from "./components/MobileHeader";
-import { ErrorAlert } from "./components/ErrorAlert";
+import { UserProvider, useUser } from "./context/UserContext";
+import GroupNavbar from "./components/Navbar/GroupNavbar";
+import HomeNavbar from "./components/Navbar/HomeNavbar";
+import ErrorAlert from "./components/ErrorAlert";
+import { GroupProvider } from "./context/GroupContext";
+import MobileHeader from "./components/Navbar/MobileHeader";
 
 export default function HomeLayout({
   children,
@@ -13,11 +15,13 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <UserProvider>
-      <ErrorProvider>
-        <HomeLayoutContent>{children}</HomeLayoutContent>
-      </ErrorProvider>
-    </UserProvider>
+    <ErrorProvider>
+      <UserProvider>
+        <GroupProvider>
+          <HomeLayoutContent>{children}</HomeLayoutContent>
+        </GroupProvider>
+      </UserProvider>
+    </ErrorProvider>
   );
 }
 
@@ -28,10 +32,16 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const getMobileTitle = () => {
-    if (pathname === "/home") return "Manage Groups";
-    if (pathname === "/home/settings") return "Account Settings";
-    return "Divvy";
+    if (pathname.endsWith("/home")) return "Manage Groups";
+    if (pathname.endsWith("/account")) return "Account Settings";
+    if (pathname.endsWith("/settings")) return "Group Settings";
+    if (pathname.endsWith("/transactions")) return "Transactions";
+    if (pathname.endsWith("/settlements")) return "Settlements";
+    if (pathname.endsWith("/members")) return "Members";
+    return "Dashboard";
   };
+
+  const isGroupPage = pathname.startsWith("/home/group");
 
   // Handle user errors
   useEffect(() => {
@@ -43,12 +53,12 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       <ErrorAlert error={error} onDismiss={clearError} />
 
+      {/* Mobile header is z-40 */}
       <MobileHeader
         title={getMobileTitle()}
-        isMenuOpen={isMobileMenuOpen}
         onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 
@@ -62,13 +72,25 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
       {/* Sidebar - Desktop always visible, Mobile slide-in */}
       <div
         className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          transform transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0
+         fixed lg:hidden inset-y-0 right-0 z-50
+          transform transition-transform duration-250 ease-in-out
+          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <Navbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        {isGroupPage ? (
+          <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        ) : (
+          <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-64 shrink-0">
+        {isGroupPage ? (
+          <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        ) : (
+          <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
+        )}
       </div>
 
       {/* Main Content Area */}

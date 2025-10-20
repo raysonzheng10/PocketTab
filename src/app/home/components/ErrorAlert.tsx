@@ -7,7 +7,7 @@ interface ErrorAlertProps {
   onDismiss: () => void;
 }
 
-export function ErrorAlert({ error, onDismiss }: ErrorAlertProps) {
+export default function ErrorAlert({ error, onDismiss }: ErrorAlertProps) {
   if (!error) return null;
 
   return (

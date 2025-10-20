@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useGroups } from "../hooks/useGroup";
-import { GroupList } from "./GroupList";
 import { Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "../../context/UserContext";
+import GroupList from "./GroupList";
 
 export default function Home() {
   const router = useRouter();
-  const { groups, fetchGroups, loading: groupsLoading } = useGroups();
+  const { userGroups, userGroupsLoading, refreshUserGroups } = useUser();
   const handleMoveToGroupPage = (groupId: string) =>
     router.push(`/home/group/${groupId}`);
 
@@ -19,7 +19,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to create group");
-      fetchGroups();
+      refreshUserGroups();
     } catch (err) {
       console.error(err);
     }
@@ -49,14 +49,14 @@ export default function Home() {
             </div>
 
             {/* Groups List / Skeleton */}
-            {groupsLoading ? (
+            {userGroupsLoading ? (
               <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} className="h-16 w-full rounded-md" />
                 ))}
               </div>
             ) : (
-              <GroupList groups={groups} onSelect={handleMoveToGroupPage} />
+              <GroupList groups={userGroups} onSelect={handleMoveToGroupPage} />
             )}
           </div>
         </div>

@@ -1,15 +1,13 @@
 "use client";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface MobileHeaderProps {
   title: string;
-  isMenuOpen: boolean;
   onToggleMenu: () => void;
 }
 
-export function MobileHeader({
+export default function MobileHeader({
   title,
-  isMenuOpen,
   onToggleMenu,
 }: MobileHeaderProps) {
   return (
@@ -19,7 +17,7 @@ export function MobileHeader({
         onClick={onToggleMenu}
         className="p-2 hover:bg-gray-100 rounded-md transition"
       >
-        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <Menu className="h-6 w-6" />
       </button>
     </div>
   );

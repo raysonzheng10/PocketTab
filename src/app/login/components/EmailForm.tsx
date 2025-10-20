@@ -26,7 +26,7 @@ export function EmailForm({
     <Card className="w-full max-w-md shadow-lg">
       <CardHeader className="space-y-3 text-center">
         <CardTitle className="text-3xl font-bold tracking-tight">
-          Login to Divvy
+          Login to PocketTab
         </CardTitle>
         <CardDescription>
           Enter your email below, and we will send your login code. Use that

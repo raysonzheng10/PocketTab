@@ -11,7 +11,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center ">
-      <h1 className="text-4xl font-bold mb-4 text-primary">Divvy</h1>
+      <h1 className="text-4xl font-bold mb-4 text-primary">PocketTab</h1>
       <p className="mb-6 text-lg">
         Split and track expenses with friends easily.
       </p>

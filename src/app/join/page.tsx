@@ -23,7 +23,7 @@ function JoinGroup() {
         throw new Error(data.error || "Failed to join group");
       }
 
-      router.push(`/dashboard/group?groupId=${groupId}`);
+      router.push(`/home/group/${groupId}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -33,7 +33,6 @@ function JoinGroup() {
     }
   }, [groupId, router]);
 
-  console.log("groupID: ", groupId);
   useEffect(() => {
     if (groupId) {
       handleJoinGroup();

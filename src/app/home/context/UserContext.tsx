@@ -6,15 +6,18 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import type { User } from "@/types";
+import type { Group, User } from "@/types";
 
 // ---- Type ----
 interface UserContextType {
+  error: string;
   user: User | null;
   setUser: (user: User | null) => void;
-  loading: boolean;
-  error: string;
+  userLoading: boolean;
   refreshUser: () => Promise<void>;
+  userGroups: Group[];
+  userGroupsLoading: boolean;
+  refreshUserGroups: () => Promise<void>;
 }
 
 // ---- Context ----
@@ -24,10 +27,10 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
-    setLoading(true);
+    setUserLoading(true);
     try {
       const res = await fetch("/api/protected/user");
       const data = await res.json();
@@ -43,7 +46,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       );
       setUser(null);
     } finally {
-      setLoading(false);
+      setUserLoading(false);
     }
   }, []);
 
@@ -51,14 +54,40 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, [fetchUser]);
 
+  const [userGroups, setUserGroups] = useState<Group[]>([]);
+  const [userGroupsLoading, setUserGroupsLoading] = useState<boolean>(true);
+
+  const fetchGroups = useCallback(async () => {
+    setUserGroupsLoading(true);
+    try {
+      const res = await fetch("/api/protected/group");
+      const data = await res.json();
+      if (!res.ok || data.error)
+        throw new Error(data.error || "Failed to fetch groups");
+      setUserGroups(data.groups);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Unknown error fetching groups",
+      );
+    }
+    setUserGroupsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
+
   return (
     <UserContext.Provider
       value={{
         user,
         setUser,
-        loading,
+        userLoading,
         error,
         refreshUser: fetchUser,
+        userGroups,
+        userGroupsLoading,
+        refreshUserGroups: fetchGroups,
       }}
     >
       {children}

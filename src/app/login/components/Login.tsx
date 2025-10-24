@@ -81,6 +81,7 @@ export default function Login() {
       }
 
       const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
+      console.log("Routing to", destination);
       router.push(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

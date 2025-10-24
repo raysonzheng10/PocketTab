@@ -18,10 +18,13 @@ export async function middleware(req: NextRequest) {
       res = NextResponse.redirect(url);
     } else if (pathname.startsWith("/api/protected")) {
       // block unauthorized from reaching /api/protected
-      res = new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      res = new NextResponse(
+        JSON.stringify({ error: "Error accessing API, UNAUTHORIZED" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     } else if (pathname.startsWith("/join")) {
       // users need to authenticate before joining a group
       const groupId = req.nextUrl.searchParams.get("groupId");
@@ -67,7 +70,7 @@ export async function middleware(req: NextRequest) {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 60 * 60, // 1 hour
     });
   } else {
@@ -79,7 +82,7 @@ export async function middleware(req: NextRequest) {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 60 * 60 * 24 * 365, // 1 year, should constantly be getting swapped out though
     });
   } else {

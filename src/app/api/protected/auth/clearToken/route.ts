@@ -9,7 +9,7 @@ export async function POST() {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 0,
   });
 
@@ -17,7 +17,7 @@ export async function POST() {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 0,
   });
 

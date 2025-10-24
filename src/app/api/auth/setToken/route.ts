@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 60 * 60, // 1 hour
   });
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 60 * 60 * 24 * 30, // 30 days to match Supabase refresh token duration
   });
 

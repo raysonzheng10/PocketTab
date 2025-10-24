@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 const isLocal = process.env.NODE_ENV !== "production";
 
 export const metadata: Metadata = {
-  title: isLocal ? "LocalHost" : "PocketTab.app",
+  title: isLocal ? "LocalHost" : "PocketTab",
 };
 
 export default function RootLayout({

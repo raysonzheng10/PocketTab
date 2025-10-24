@@ -66,6 +66,7 @@ export default function Login() {
         }),
       });
 
+      console.log(setTokenRes);
       if (!setTokenRes.ok) {
         const text = await setTokenRes.text();
         throw new Error(`Failed to set tokens: ${text}`);

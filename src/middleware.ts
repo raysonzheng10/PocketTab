@@ -18,10 +18,18 @@ export async function middleware(req: NextRequest) {
       res = NextResponse.redirect(url);
     } else if (pathname.startsWith("/api/protected")) {
       // block unauthorized from reaching /api/protected
-      res = new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      res = new NextResponse(
+        JSON.stringify({
+          error:
+            process.env.NODE_ENV === "production"
+              ? "Error accessing API, UNAUTHORIZED"
+              : `UNAUTHORIZED access to ${pathname} | Token info: ${access_token} ${refresh_token}`,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     } else if (pathname.startsWith("/join")) {
       // users need to authenticate before joining a group
       const groupId = req.nextUrl.searchParams.get("groupId");
@@ -43,8 +51,21 @@ export async function middleware(req: NextRequest) {
     }
 
     // Update tokens
-    res.cookies.delete("sb-access-token");
-    res.cookies.delete("sb-refresh-token");
+    res.cookies.set("sb-access-token", "", {
+      httpOnly: true,
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 0,
+    });
+
+    res.cookies.set("sb-refresh-token", "", {
+      httpOnly: true,
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 0,
+    });
 
     return res;
   }
@@ -67,7 +88,7 @@ export async function middleware(req: NextRequest) {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 60 * 60, // 1 hour
     });
   } else {
@@ -79,7 +100,7 @@ export async function middleware(req: NextRequest) {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 60 * 60 * 24 * 365, // 1 year, should constantly be getting swapped out though
     });
   } else {

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, LogOut } from "lucide-react";
@@ -16,7 +15,6 @@ export default function UserLogout({
   setError,
 }: UserSectionProps) {
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogout = async () => {
     setIsLogoutLoading(true);
@@ -25,7 +23,9 @@ export default function UserLogout({
         method: "POST",
       });
       if (!res.ok) throw new Error("Failed to log out");
-      router.push("/");
+
+      // use location.href to refresh cached state
+      window.location.href = "/";
     } catch {
       setError("Failed to log out.");
       setIsLogoutLoading(false);

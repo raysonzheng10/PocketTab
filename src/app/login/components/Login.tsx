@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabaseClient } from "@/app/utils/supabaseClient";
 import { OtpForm } from "./OtpForm";
 import { EmailForm } from "./EmailForm";
@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 export default function Login() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
 
@@ -32,48 +31,62 @@ export default function Login() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      setError("OTP is required");
-      return;
-    }
+    try {
+      if (!otp) {
+        setError("OTP is required");
+        return;
+      }
 
-    setError("");
-    setIsLoading(true);
-    const { data, error } = await supabaseClient.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "email",
-    });
+      setError("");
+      setIsLoading(true);
 
-    // return if OTP verification failed
-    if (error) {
-      setError(error.message);
+      const { data, error } = await supabaseClient.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      if (!data?.user) {
+        setError("Failed to retrieve user from OTP verification");
+        return;
+      }
+
+      const setTokenRes = await fetch("/api/auth/setToken", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: data.session?.access_token,
+          refresh_token: data.session?.refresh_token,
+        }),
+      });
+
+      console.log(setTokenRes);
+      if (!setTokenRes.ok) {
+        const text = await setTokenRes.text();
+        throw new Error(`Failed to set tokens: ${text}`);
+      }
+
+      const upsertRes = await fetch("/api/protected/user/upsert", {
+        method: "POST",
+      });
+      const result = await upsertRes.json();
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      // use location.href to fully refresh the state, make sure cookies aren't stale
+      window.location.href = redirectTo
+        ? decodeURIComponent(redirectTo)
+        : "/home";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setIsLoading(false);
-      return;
-    } else if (!data?.user) {
-      setError("Failed to retrieve user from OTP verification");
-      setIsLoading(false);
-      return;
-    }
-
-    await fetch("/api/auth/setToken", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        access_token: data.session?.access_token,
-        refresh_token: data.session?.refresh_token,
-      }),
-    });
-
-    const res = await fetch("/api/protected/user/upsert", { method: "POST" });
-    const result = await res.json();
-
-    if (result?.error) {
-      setError(result.error);
-      setIsLoading(false);
-    } else {
-      const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
-      router.push(destination);
     }
   };
 

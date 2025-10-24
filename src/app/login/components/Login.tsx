@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabaseClient } from "@/app/utils/supabaseClient";
 import { OtpForm } from "./OtpForm";
 import { EmailForm } from "./EmailForm";
@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 export default function Login() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
 
@@ -81,9 +80,10 @@ export default function Login() {
         throw new Error(result.error);
       }
 
-      const destination = redirectTo ? decodeURIComponent(redirectTo) : "/home";
-      console.log("Routing to", destination);
-      router.push(destination);
+      // use location.href to fully refresh the state, make sure cookies aren't stale
+      window.location.href = redirectTo
+        ? decodeURIComponent(redirectTo)
+        : "/home";
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setIsLoading(false);

@@ -169,13 +169,13 @@ export default function CreateTransactionModal({
           </div>
 
           {/* DEBUG */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <div>DEBUG</div>
             <div>transaction title: {title}</div>
             <div>amount: {amount}</div>
             <div>date: {date.toLocaleDateString()}</div>
             <div>payerId: {payerId}</div>
-          </div>
+          </div> */}
 
           <Separator />
           <SplittingCollapsible

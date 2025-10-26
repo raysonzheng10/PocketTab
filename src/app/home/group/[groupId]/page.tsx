@@ -3,7 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useError } from "../../context/ErrorContext";
 import { useGroup } from "../../context/GroupContext";
 import GroupCard from "./components/dashboard/GroupCard";
-import CreateTransactionModal from "./components/dashboard/CreateTransactionModal";
+import CreateTransactionModal from "./components/dashboard/CreateTransactionModal/CreateTransactionModal";
 import DashboardCard from "./components/dashboard/DashboardCard";
 
 function PageContent() {

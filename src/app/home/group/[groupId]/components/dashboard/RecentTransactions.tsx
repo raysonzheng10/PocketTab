@@ -2,6 +2,7 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 interface RecentTransactionsProps {
@@ -11,7 +12,8 @@ interface RecentTransactionsProps {
 export default function RecentTransactions({
   onCreateTransaction,
 }: RecentTransactionsProps) {
-  const { transactions } = useGroup();
+  const router = useRouter();
+  const { group, transactions } = useGroup();
 
   const recentTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -22,6 +24,12 @@ export default function RecentTransactions({
       )
       .slice(0, 3);
   }, [transactions]);
+
+  const handleNavigateTransactions = () => {
+    if (!group) return;
+    router.push(`/home/group/${group.id}/transactions`);
+  };
+
   return (
     <div>
       <div className="flex flex-row justify-between items-center py-3 mb-4">
@@ -55,14 +63,11 @@ export default function RecentTransactions({
                   Paid by {transaction.groupMemberNickname}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(transaction.createdAt).toLocaleDateString(
-                    undefined,
-                    {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    },
-                  )}
+                  {new Date(transaction.date).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
               </div>
             </div>
@@ -73,9 +78,7 @@ export default function RecentTransactions({
         <Button
           variant="ghost"
           className="w-full mt-3"
-          onClick={() => {
-            /* navigate to /transactions */
-          }}
+          onClick={handleNavigateTransactions}
         >
           See All Transactions
         </Button>

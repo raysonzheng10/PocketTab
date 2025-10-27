@@ -3,6 +3,7 @@ export interface DetailedTransaction {
   createdAt: Date;
   amount: number;
   title: string;
+  date: Date;
   groupMemberId: string;
   groupMemberNickname: string;
 }

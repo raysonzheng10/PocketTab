@@ -101,6 +101,7 @@ export default function CreateTransactionModal({
       transactionOwnerId: payerId,
       title,
       amount,
+      date,
       splits: expenseSplits,
     });
 

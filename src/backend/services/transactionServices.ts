@@ -19,6 +19,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
   transactionOwnerId: string,
   title: string,
   amount: number,
+  date: Date,
   expenses: expense[],
   groupId: string,
 ) {
@@ -27,6 +28,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
       groupId,
       groupMemberId: transactionOwnerId,
       title,
+      date,
       amount,
     },
   });
@@ -121,6 +123,7 @@ export async function createTransactionWithExpensesAndSettlements(
   transactionOwnerId: string,
   title: string,
   amount: number,
+  date: Date,
   expenses: expense[],
 ) {
   const groupId = await getGroupIdByGroupMemberId(transactionOwnerId);
@@ -133,6 +136,7 @@ export async function createTransactionWithExpensesAndSettlements(
       transactionOwnerId,
       title,
       amount,
+      date,
       expenses,
       groupId,
     );
@@ -159,6 +163,7 @@ export async function getDetailedTransactionsByGroupId(groupId: string) {
     createdAt: t.createdAt,
     amount: t.amount,
     title: t.title,
+    date: t.date,
     groupMemberId: t.groupMemberId,
     groupMemberNickname: t.groupMember.nickname,
   }));

@@ -10,21 +10,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
 
-    const { transactionOwnerId, title, amount, splits } = await req.json();
+    const { transactionOwnerId, title, amount, date, splits } =
+      await req.json();
 
-    if (!transactionOwnerId || !title || !amount || !splits) {
+    if (!transactionOwnerId || !title || !amount || !date || !splits) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
 
-    console.log("attempting to create transact");
-
     const transaction = await createTransactionWithExpensesAndSettlements(
       transactionOwnerId,
       title,
       amount,
+      date,
       splits,
     );
     return NextResponse.json({ transaction: transaction });

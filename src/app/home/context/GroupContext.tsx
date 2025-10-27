@@ -29,6 +29,7 @@ type GroupContextType = {
     transactionOwnerId: string;
     title: string;
     amount: number;
+    date: Date;
     splits: Record<string, ExpenseSplit>;
   }) => Promise<boolean>;
   createTransactionLoading: boolean;
@@ -122,11 +123,13 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       transactionOwnerId,
       title,
       amount,
+      date,
       splits,
     }: {
       transactionOwnerId: string;
       title: string;
       amount: number;
+      date: Date;
       splits: Record<string, ExpenseSplit>;
     }) => {
       setIsCreateTransactionLoading(true);
@@ -145,6 +148,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
             transactionOwnerId,
             title,
             amount,
+            date,
             splits: transformedSplits,
           }),
         });

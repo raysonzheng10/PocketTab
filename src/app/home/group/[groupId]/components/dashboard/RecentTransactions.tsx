@@ -1,22 +1,17 @@
+// components/RecentTransactions.tsx
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 
-export default function TransactionCard() {
-  const { group, transactions, transactionsLoading } = useGroup();
-  const router = useRouter();
-  const [navigateLoading, setNavigateLoading] = useState<boolean>(false);
+interface RecentTransactionsProps {
+  onCreateTransaction: () => void;
+}
 
-  const handleNavigateTransactions = () => {
-    if (!group) return;
-    setNavigateLoading(true);
-    router.push(`/home/group/${group.id}/settlements`);
-  };
+export default function RecentTransactions({
+  onCreateTransaction,
+}: RecentTransactionsProps) {
+  const { transactions } = useGroup();
 
   const recentTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -27,41 +22,18 @@ export default function TransactionCard() {
       )
       .slice(0, 3);
   }, [transactions]);
-
-  if (transactionsLoading)
-    return (
-      <Card className="shadow-sm">
-        <CardHeader className="flex items-center justify-between pb-3">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-8 w-24" />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </CardContent>
-      </Card>
-    );
-
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex items-center justify-between pb-3">
-        <CardTitle className="text-xl font-semibold">
-          Recent Transactions
-        </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNavigateTransactions}
-        >
-          {navigateLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-          See All Transactions
+    <div>
+      <div className="flex flex-row justify-between items-center py-3 mb-4">
+        <h3 className="text-xl font-semibold">Recent Transactions</h3>
+        <Button variant="outline" onClick={onCreateTransaction}>
+          Create Transaction
         </Button>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-3">
+      <div className="space-y-3">
         {recentTransactions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No transactions yet</p>
+          <p className="text-sm text-muted-foreground">No Transactions yet</p>
         ) : (
           recentTransactions.map((transaction) => (
             <div
@@ -96,7 +68,18 @@ export default function TransactionCard() {
             </div>
           ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+      {recentTransactions.length > 0 && (
+        <Button
+          variant="ghost"
+          className="w-full mt-3"
+          onClick={() => {
+            /* navigate to /transactions */
+          }}
+        >
+          See All Transactions
+        </Button>
+      )}
+    </div>
   );
 }

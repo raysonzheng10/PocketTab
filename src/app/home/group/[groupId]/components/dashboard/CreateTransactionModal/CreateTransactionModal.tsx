@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -90,6 +91,10 @@ export default function CreateTransactionModal({
     if (Math.abs(totalPercentage - 100) > 0.01) {
       setError("Splits must add up to 100%");
       return;
+    } else if (!title) {
+      setError("Title cannot be empty");
+    } else if (!payerId) {
+      setError("Paid By cannot be empty");
     }
 
     const success = await createTransaction({
@@ -116,6 +121,7 @@ export default function CreateTransactionModal({
       <DialogContent className="max-h-2/3 overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create Transaction</DialogTitle>
+          <DialogDescription>All fields required!</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -212,15 +218,6 @@ export default function CreateTransactionModal({
             </FormField>
           </div>
 
-          {/* DEBUG */}
-          {/* <div className="flex flex-col">
-            <div>DEBUG</div>
-            <div>transaction title: {title}</div>
-            <div>amount: {amount}</div>
-            <div>date: {date.toLocaleDateString()}</div>
-            <div>payerId: {payerId}</div>
-          </div> */}
-
           <Separator />
           <SplittingCollapsible
             open={isSplitOptionsOpen}
@@ -232,6 +229,7 @@ export default function CreateTransactionModal({
 
           <Button
             disabled={createTransactionLoading}
+            loading={createTransactionLoading}
             onClick={handleCreateTransaction}
           >
             Create

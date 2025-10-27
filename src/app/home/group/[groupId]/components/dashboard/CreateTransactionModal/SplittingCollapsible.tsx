@@ -3,6 +3,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown } from "lucide-react";
@@ -70,35 +71,20 @@ export default function SplittingCollapsible({
 
   const toggleMember = (id: string) => {
     setActiveMembers((prev) => {
-      let updated: string[];
       if (prev.includes(id)) {
         if (prev.length === 1) return prev;
-        updated = prev.filter((m) => m !== id);
+        return prev.filter((m) => m !== id);
       } else {
-        updated = [...prev, id];
+        return [...prev, id];
       }
-
-      if (!isModified) {
-        setSplits(autoEvenSplit(updated));
-      } else {
-        // If modified, add new member with 0% or remove member from splits
-        const newSplits = { ...splits };
-        if (updated.includes(id) && !prev.includes(id)) {
-          // Adding member
-          newSplits[id] = {
-            percentage: 0,
-            amount: 0,
-          };
-        } else if (!updated.includes(id) && prev.includes(id)) {
-          // Removing member
-          delete newSplits[id];
-        }
-        setSplits(newSplits);
-      }
-
-      return updated;
     });
   };
+
+  useEffect(() => {
+    if (!isModified) {
+      setSplits(autoEvenSplit(activeMembers));
+    }
+  }, [activeMembers, isModified, autoEvenSplit, setSplits]);
 
   // Handle percentage change
   const handlePercentageChange = (memberId: string, percentage: number) => {
@@ -127,7 +113,7 @@ export default function SplittingCollapsible({
   // Calculate status description
   const getStatusDescription = () => {
     if (activeMembers.length === 1) {
-      return "Split by 1 person";
+      return "Split With 1 person";
     }
 
     const equalShare = 100 / activeMembers.length;
@@ -170,20 +156,18 @@ export default function SplittingCollapsible({
                 <div
                   key={member.id}
                   className={`flex flex-row justify-between items-center gap-3 transition ${
-                    isActive ? "bg-white" : "bg-gray-50 opacity-60"
+                    !isActive && "opacity-60"
                   }`}
                 >
-                  <Button
-                    variant={"static"}
-                    onClick={() => toggleMember(member.id)}
-                  >
-                    <Checkbox checked={isActive} />
-
+                  <div className="flex items-center gap-2 h-12">
+                    <Checkbox
+                      checked={isActive}
+                      onCheckedChange={() => toggleMember(member.id)}
+                    />
                     <div className="flex-1 truncate text-sm font-medium text-gray-800">
                       {member.nickname}
                     </div>
-                  </Button>
-
+                  </div>
                   {isActive && (
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-sm text-gray-400">

@@ -20,13 +20,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Separator } from "@/components/ui/separator";
 import SplittingCollapsible from "./SplittingCollapsible";
 import { ExpenseSplit } from "@/types/expense";
+import { useError } from "@/app/home/context/ErrorContext";
 
 export interface CreateTransactionModalProps {
   open: boolean;
@@ -37,7 +38,9 @@ export default function CreateTransactionModal({
   open,
   onOpenChange,
 }: CreateTransactionModalProps) {
-  const { groupMembers } = useGroup();
+  const { groupMembers, createTransaction, createTransactionLoading } =
+    useGroup();
+  const { setError } = useError();
 
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
@@ -49,7 +52,7 @@ export default function CreateTransactionModal({
     Record<string, ExpenseSplit>
   >({});
 
-  useEffect(() => {
+  const initializeSplits = useCallback(() => {
     if (!groupMembers || groupMembers.length === 0) return;
 
     const initialSplits = Object.fromEntries(
@@ -62,13 +65,54 @@ export default function CreateTransactionModal({
     setExpenseSplits(initialSplits);
   }, [groupMembers]);
 
-  // const handleSplitChange = (member: string, value: string) => {
-  //   const numValue = parseFloat(value) || 0;
-  //   setExpenseSplits((prev) => ({ ...prev, [member]: numValue }));
-  // };
+  // Call on mount / when groupMembers change
+  useEffect(() => {
+    initializeSplits();
+  }, [groupMembers, initializeSplits]);
+
+  const handleCloseModal = () => {
+    setTitle("");
+    setAmount(0);
+    setDate(new Date());
+    setPayerId("");
+    setIsPayerPopoverOpen(false);
+    setIsSplitOptionsOpen(false);
+    initializeSplits();
+    onOpenChange(false);
+  };
+
+  const handleCreateTransaction = async () => {
+    const totalPercentage = Object.values(expenseSplits).reduce(
+      (sum, split) => sum + split.percentage,
+      0,
+    );
+
+    if (Math.abs(totalPercentage - 100) > 0.01) {
+      setError("Splits must add up to 100%");
+      return;
+    }
+
+    const success = await createTransaction({
+      transactionOwnerId: payerId,
+      title,
+      amount,
+      splits: expenseSplits,
+    });
+
+    if (success) {
+      handleCloseModal();
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleCloseModal();
+        }
+      }}
+    >
       <DialogContent className="max-h-2/3 overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create Transaction</DialogTitle>
@@ -186,7 +230,12 @@ export default function CreateTransactionModal({
             transactionTotal={amount}
           />
 
-          <Button>Create</Button>
+          <Button
+            disabled={createTransactionLoading}
+            onClick={handleCreateTransaction}
+          >
+            Create
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -2,9 +2,11 @@
 import {
   DetailedSettlements,
   DetailedTransaction,
+  Expense,
   Group,
   GroupMember,
 } from "@/types";
+import { ExpenseSplit } from "@/types/expense";
 import { useParams } from "next/navigation";
 import {
   createContext,
@@ -23,6 +25,13 @@ type GroupContextType = {
   refreshGroup: () => Promise<void>;
   transactions: DetailedTransaction[];
   transactionsLoading: boolean;
+  createTransaction: (params: {
+    transactionOwnerId: string;
+    title: string;
+    amount: number;
+    splits: Record<string, ExpenseSplit>;
+  }) => Promise<boolean>;
+  createTransactionLoading: boolean;
   refreshTransactions: () => Promise<void>;
   settlements: DetailedSettlements | null;
   settlementsLoading: boolean;
@@ -105,6 +114,64 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     fetchTransactions();
   }, [groupId, fetchTransactions]);
 
+  const [isCreateTransactionLoading, setIsCreateTransactionLoading] =
+    useState<boolean>(false);
+
+  const createTransaction = useCallback(
+    async ({
+      transactionOwnerId,
+      title,
+      amount,
+      splits,
+    }: {
+      transactionOwnerId: string;
+      title: string;
+      amount: number;
+      splits: Record<string, ExpenseSplit>;
+    }) => {
+      setIsCreateTransactionLoading(true);
+      try {
+        const transformedSplits: Expense[] = Object.entries(splits).map(
+          ([id, split]) => ({
+            groupMemberId: id,
+            amount: split.amount,
+          }),
+        );
+
+        const res = await fetch(`/api/protected/transaction/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transactionOwnerId,
+            title,
+            amount,
+            splits: transformedSplits,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to create transaction");
+
+        // refetch transactions after creating
+        fetchTransactions();
+        fetchSettlements();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      } finally {
+        setIsCreateTransactionLoading(false);
+      }
+    },
+    [fetchTransactions],
+  );
+
   // ----- settlements data -----
   const [settlements, setSettlements] = useState<DetailedSettlements | null>(
     null,
@@ -151,6 +218,8 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         refreshGroup: fetchGroupWithGroupMembers,
         transactions,
         transactionsLoading,
+        createTransaction,
+        createTransactionLoading: isCreateTransactionLoading,
         refreshTransactions: fetchTransactions,
         settlements,
         settlementsLoading,

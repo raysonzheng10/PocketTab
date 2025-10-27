@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log("attempting to create transact");
+
     const transaction = await createTransactionWithExpensesAndSettlements(
       transactionOwnerId,
       title,

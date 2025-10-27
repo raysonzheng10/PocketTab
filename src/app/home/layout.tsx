@@ -26,7 +26,7 @@ export default function HomeLayout({
 }
 
 function HomeLayoutContent({ children }: { children: ReactNode }) {
-  const { error, setError, clearError } = useError();
+  const { setError } = useError();
   const { error: userError } = useUser();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -54,7 +54,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <ErrorAlert error={error} onDismiss={clearError} />
+      <ErrorAlert />
 
       {/* Mobile header is z-40 */}
       <MobileHeader

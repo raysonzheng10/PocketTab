@@ -1,6 +1,6 @@
 // api/protected/transaction/[groupId]
 import { NextRequest, NextResponse } from "next/server";
-import { getDetailedTransactionsByGroupId } from "@/backend/services/transactionServices";
+import { getDetailedTransactionsByGroupIdPaginated } from "@/backend/services/transactionServices";
 import { checkUserIsInGroup } from "@/backend/services/groupServices";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 
@@ -22,9 +22,14 @@ export async function GET(
       );
     }
 
-    const detailedTransactions =
-      await getDetailedTransactionsByGroupId(groupId);
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(Number(searchParams.get("limit")) || 10, 10); // max of 10 transactions per page
+    const cursor = searchParams.get("cursor") || undefined;
 
+    const { detailedTransactions, nextCursor } =
+      await getDetailedTransactionsByGroupIdPaginated(groupId, limit, cursor);
+
+    console.log("API", detailedTransactions, nextCursor);
     return NextResponse.json({ transactions: detailedTransactions });
   } catch (err: unknown) {
     console.error("Error in POST /transaction/[groupId]:", err);

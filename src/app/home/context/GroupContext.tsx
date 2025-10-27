@@ -88,7 +88,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const fetchTransactions = useCallback(async () => {
     setTransactionsLoading(true);
     try {
-      const res = await fetch(`/api/protected/transaction/${groupId}`, {
+      const res = await fetch(`/api/protected/transaction/${groupId}?limit=3`, {
         method: "GET",
       });
       const data = await res.json();

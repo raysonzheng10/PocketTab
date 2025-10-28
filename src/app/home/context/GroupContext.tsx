@@ -25,6 +25,10 @@ type GroupContextType = {
   refreshGroup: () => Promise<void>;
   transactions: DetailedTransaction[];
   transactionsLoading: boolean;
+  resetTransactions: () => Promise<void>;
+  fetchNextTransactions: () => Promise<void>;
+  hasMoreTransactions: boolean;
+  // refreshTransactions: () => Promise<void>;
   createTransaction: (params: {
     transactionOwnerId: string;
     title: string;
@@ -33,7 +37,6 @@ type GroupContextType = {
     splits: Record<string, ExpenseSplit>;
   }) => Promise<boolean>;
   createTransactionLoading: boolean;
-  refreshTransactions: () => Promise<void>;
   settlements: DetailedSettlements | null;
   settlementsLoading: boolean;
   refreshSettlements: () => Promise<void>;
@@ -83,20 +86,34 @@ export function GroupProvider({ children }: { children: ReactNode }) {
 
   // ----- transactions data -----
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
-  const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState<boolean>(true);
+  const [transactionCursor, setTransactionCursor] = useState<string>("");
+  const [hasMoreTransactions, setHasMoreTransactions] = useState<boolean>(true);
+
+  const cursorAttachment = transactionCursor
+    ? `&cursor=${transactionCursor}`
+    : "";
 
   const fetchTransactions = useCallback(async () => {
     setTransactionsLoading(true);
     try {
-      const res = await fetch(`/api/protected/transaction/${groupId}?limit=3`, {
-        method: "GET",
-      });
+      const res = await fetch(
+        `/api/protected/transaction/paginated/${groupId}?limit=5${cursorAttachment}`,
+        {
+          method: "GET",
+        },
+      );
       const data = await res.json();
 
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch transactions");
 
       setTransactions(data.transactions);
+      setTransactionCursor(data.cursor);
+      if (!data.cursor) {
+        setHasMoreTransactions(false);
+      }
+
       setError("");
     } catch (err: unknown) {
       setError(
@@ -108,13 +125,68 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     } finally {
       setTransactionsLoading(false);
     }
+  }, [groupId, cursorAttachment]);
+
+  useEffect(() => {
+    if (!groupId) return;
+    // initial fetch
+    fetchTransactions();
+  }, [groupId, fetchTransactions]);
+
+  const resetTransactions = useCallback(async () => {
+    if (transactionsLoading) {
+      return;
+    }
+
+    setTransactionCursor("");
+    await fetchTransactions();
+  }, [fetchTransactions, transactionsLoading]);
+
+  const fetchNextTransactions = useCallback(async () => {
+    if (transactionsLoading || !hasMoreTransactions) {
+      return;
+    }
+
+    await fetchTransactions();
+  }, [fetchTransactions, transactionsLoading, hasMoreTransactions]);
+
+  // ----- settlements data -----
+  const [settlements, setSettlements] = useState<DetailedSettlements | null>(
+    null,
+  );
+  const [settlementsLoading, setSettlementsLoading] = useState(true);
+
+  const fetchSettlements = useCallback(async () => {
+    setSettlementsLoading(true);
+    try {
+      const res = await fetch(`/api/protected/settlement/${groupId}`, {
+        method: "GET",
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error)
+        throw new Error(data.error || "Failed to fetch settlements");
+
+      setSettlements(data);
+      setError("");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unknown error fetching settlements",
+      );
+      setSettlements(null);
+    } finally {
+      setSettlementsLoading(false);
+    }
   }, [groupId]);
 
   useEffect(() => {
     if (!groupId) return;
-    fetchTransactions();
-  }, [groupId, fetchTransactions]);
+    fetchSettlements();
+  }, [groupId, fetchSettlements]);
 
+  // ----- create transaction ------
   const [isCreateTransactionLoading, setIsCreateTransactionLoading] =
     useState<boolean>(false);
 
@@ -158,7 +230,10 @@ export function GroupProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to create transaction");
 
         // refetch transactions after creating
-        fetchTransactions();
+
+        // ! optimistic prepend to save time, could definitely be a source of problems in the future
+        setTransactions((prev) => [data.transaction, ...prev]);
+        // resetTransactions(); <--- safer but slower alternative
         fetchSettlements();
         setError("");
         return true;
@@ -173,45 +248,8 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         setIsCreateTransactionLoading(false);
       }
     },
-    [fetchTransactions],
+    [fetchSettlements],
   );
-
-  // ----- settlements data -----
-  const [settlements, setSettlements] = useState<DetailedSettlements | null>(
-    null,
-  );
-  const [settlementsLoading, setSettlementsLoading] = useState(true);
-
-  const fetchSettlements = useCallback(async () => {
-    setSettlementsLoading(true);
-    try {
-      const res = await fetch(`/api/protected/settlement/${groupId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-
-      if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to fetch settlements");
-
-      setSettlements(data);
-      setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unknown error fetching settlements",
-      );
-      setSettlements(null);
-    } finally {
-      setSettlementsLoading(false);
-    }
-  }, [groupId]);
-
-  useEffect(() => {
-    if (!groupId) return;
-    fetchSettlements();
-  }, [groupId, fetchSettlements]);
-
   return (
     <GroupContext.Provider
       value={{
@@ -222,9 +260,11 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         refreshGroup: fetchGroupWithGroupMembers,
         transactions,
         transactionsLoading,
+        resetTransactions,
+        fetchNextTransactions,
+        hasMoreTransactions,
         createTransaction,
         createTransactionLoading: isCreateTransactionLoading,
-        refreshTransactions: fetchTransactions,
         settlements,
         settlementsLoading,
         refreshSettlements: fetchSettlements,

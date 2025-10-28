@@ -1,8 +1,8 @@
-// api/protected/transaction/paginated/[groupId]
+// api/protected/recurringTransaction/paginated/[groupId]
 import { NextRequest, NextResponse } from "next/server";
-import { getDetailedTransactionsByGroupIdPaginated } from "@/backend/services/transactionServices";
 import { checkUserIsInGroup } from "@/backend/services/groupServices";
 import { getAuthenticatedUser } from "@/app/utils/auth";
+import { getDetailedRecurringTransactionsByGroupIdPaginated } from "@/backend/services/recurringTransactionServices";
 
 export async function GET(
   req: NextRequest,
@@ -23,14 +23,18 @@ export async function GET(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(Number(searchParams.get("limit")) || 10, 10); // max of 10 transactions per req
+    const limit = Math.min(Number(searchParams.get("limit")) || 10, 10); // max of 10 recurring transactions per req
     const cursor = searchParams.get("cursor") || undefined;
 
-    const { detailedTransactions, nextCursor } =
-      await getDetailedTransactionsByGroupIdPaginated(groupId, limit, cursor);
+    const { detailedRecurringTransactions, nextCursor } =
+      await getDetailedRecurringTransactionsByGroupIdPaginated(
+        groupId,
+        limit,
+        cursor,
+      );
 
     return NextResponse.json({
-      transactions: detailedTransactions,
+      recurringTransactions: detailedRecurringTransactions,
       nextCursor,
     });
   } catch (err: unknown) {

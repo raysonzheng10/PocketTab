@@ -6,15 +6,15 @@ export type TransactionWithGroupMember = Prisma.TransactionGetPayload<{
 }>;
 
 // get transactions
-export async function getTransactionsWithGroupMembersByGroupIdPaginated(
+export async function getTransactionsWithGroupMemberByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ): Promise<{
-  transactionsWithGroupMembers: TransactionWithGroupMember[];
+  transactionsWithGroupMember: TransactionWithGroupMember[];
   nextCursor: string | null;
 }> {
-  const transactionsWithGroupMembers = await prisma.transaction.findMany({
+  const transactionsWithGroupMember = await prisma.transaction.findMany({
     where: { groupId },
     include: { groupMember: true },
     orderBy: { createdAt: "desc" },
@@ -25,12 +25,12 @@ export async function getTransactionsWithGroupMembersByGroupIdPaginated(
   let nextCursor: string | null = null;
 
   // grab next cursor if possible
-  if (transactionsWithGroupMembers.length > limit) {
-    const nextItem = transactionsWithGroupMembers.pop();
+  if (transactionsWithGroupMember.length > limit) {
+    const nextItem = transactionsWithGroupMember.pop();
     nextCursor = nextItem?.id || null;
   }
 
-  return { transactionsWithGroupMembers, nextCursor };
+  return { transactionsWithGroupMember, nextCursor };
 }
 
 export async function getTransactionsWithGroupMemberByGroupId(

@@ -42,3 +42,27 @@ export async function updateRecurringTransaction(
     data,
   });
 }
+
+export async function getRecurringTransactionWithGroupMemberByGroupIdPaginated(
+  groupId: string,
+  limit: number,
+  cursor?: string,
+) {
+  const recurringTransactionsWithGroupMember =
+    await prisma.recurringTransaction.findMany({
+      where: { groupId },
+      include: { groupMember: true },
+      orderBy: { nextOccurrence: "asc" }, // order by soonest reoccurence -> latest
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor } } : {}),
+    });
+
+  let nextCursor: string | null = null;
+  // grab next cursor if possible
+  if (recurringTransactionsWithGroupMember.length > limit) {
+    const nextItem = recurringTransactionsWithGroupMember.pop();
+    nextCursor = nextItem?.id || null;
+  }
+
+  return { recurringTransactionsWithGroupMember, nextCursor };
+}

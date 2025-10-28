@@ -1,10 +1,11 @@
 "use client";
-import { useGroup } from "@/app/home/context/GroupContext";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import RecentTransactions from "./RecentTransactions";
 import SettlementDetails from "./SettlementDetails";
+import { useSettlements } from "../../context/SettlementContext";
+import { useTransactions } from "../../context/TransactionContext";
 
 export interface DashboardCardProps {
   openCreateTransactionModal: (open: boolean) => void;
@@ -12,7 +13,8 @@ export interface DashboardCardProps {
 export default function DashboardCard({
   openCreateTransactionModal,
 }: DashboardCardProps) {
-  const { settlementsLoading, transactionsLoading } = useGroup();
+  const { settlementsLoading } = useSettlements();
+  const { transactionsLoading } = useTransactions();
 
   // skeleton loaders
   if (settlementsLoading || transactionsLoading)

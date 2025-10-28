@@ -4,14 +4,16 @@ import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { useSettlements } from "../../context/SettlementContext";
 
 export default function SettlementDetails() {
   const router = useRouter();
-  const { group, settlements } = useGroup();
+  const { groupId } = useGroup();
+  const { settlements } = useSettlements();
 
   const handleNavigateSettlements = () => {
-    if (!group) return;
-    router.push(`/home/group/${group.id}/settlements`);
+    if (!groupId) return;
+    router.push(`/home/group/${groupId}/settlements`);
   };
 
   const total = settlements?.total ?? 0;

@@ -4,6 +4,7 @@ import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { useTransactions } from "../../context/TransactionContext";
 
 interface RecentTransactionsProps {
   onCreateTransaction: () => void;
@@ -13,7 +14,8 @@ export default function RecentTransactions({
   onCreateTransaction,
 }: RecentTransactionsProps) {
   const router = useRouter();
-  const { group, transactions } = useGroup();
+  const { groupId } = useGroup();
+  const { transactions } = useTransactions();
 
   const recentTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -26,8 +28,8 @@ export default function RecentTransactions({
   }, [transactions]);
 
   const handleNavigateTransactions = () => {
-    if (!group) return;
-    router.push(`/home/group/${group.id}/transactions`);
+    if (!groupId) return;
+    router.push(`/home/group/${groupId}/transactions`);
   };
 
   return (

@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { getRecurringTransactionWithRecurringExpensesById } from "../repositories/recurringTransactionRepo";
 import {
   getTransactionsWithGroupMemberByGroupId,
-  getTransactionsWithGroupMembersByGroupIdPaginated,
+  getTransactionsWithGroupMemberByGroupIdPaginated,
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
@@ -161,14 +161,14 @@ export async function getDetailedTransactionsByGroupIdPaginated(
   limit: number,
   cursor?: string,
 ) {
-  const { transactionsWithGroupMembers, nextCursor } =
-    await getTransactionsWithGroupMembersByGroupIdPaginated(
+  const { transactionsWithGroupMember, nextCursor } =
+    await getTransactionsWithGroupMemberByGroupIdPaginated(
       groupId,
       limit,
       cursor,
     );
 
-  const detailedTransactions = transactionsWithGroupMembers.map((t) => ({
+  const detailedTransactions = transactionsWithGroupMember.map((t) => ({
     id: t.id,
     createdAt: t.createdAt,
     amount: t.amount,

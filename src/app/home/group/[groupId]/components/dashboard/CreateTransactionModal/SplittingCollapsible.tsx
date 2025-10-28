@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown } from "lucide-react";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { ExpenseSplit } from "@/types/expense";
 import { useCallback, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExpenseSplit } from "@/types";
 
 interface SplitOptionsCollapsibleProps {
   open: boolean;

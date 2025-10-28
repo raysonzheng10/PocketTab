@@ -27,8 +27,9 @@ import { format } from "date-fns";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Separator } from "@/components/ui/separator";
 import SplittingCollapsible from "./SplittingCollapsible";
-import { ExpenseSplit } from "@/types/expense";
 import { useError } from "@/app/home/context/ErrorContext";
+import { ExpenseSplit } from "@/types";
+import { useTransactions } from "../../../context/TransactionContext";
 
 export interface CreateTransactionModalProps {
   open: boolean;
@@ -39,8 +40,8 @@ export default function CreateTransactionModal({
   open,
   onOpenChange,
 }: CreateTransactionModalProps) {
-  const { groupMembers, createTransaction, createTransactionLoading } =
-    useGroup();
+  const { groupMembers } = useGroup();
+  const { createTransaction, createTransactionLoading } = useTransactions();
   const { setError } = useError();
 
   const [title, setTitle] = useState<string>("");

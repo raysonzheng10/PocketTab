@@ -62,7 +62,7 @@ export function RecurringTransactionProvider({
     setRecurringTransactionsLoading(true);
     try {
       const res = await fetch(
-        `/api/protected/recurring-transaction/paginated/${groupId}?limit=5${cursorAttachment}`,
+        `/api/protected/recurringTransaction/paginated/${groupId}?limit=5${cursorAttachment}`,
         {
           method: "GET",
         },
@@ -142,7 +142,7 @@ export function RecurringTransactionProvider({
           }),
         );
 
-        const res = await fetch(`/api/protected/recurring-transaction/create`, {
+        const res = await fetch(`/api/protected/recurringTransaction/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

@@ -31,7 +31,7 @@ export async function GET(
 
     return NextResponse.json({
       transactions: detailedTransactions,
-      nextCursor,
+      cursor: nextCursor,
     });
   } catch (err: unknown) {
     console.error("Error in POST /transaction/[groupId]:", err);

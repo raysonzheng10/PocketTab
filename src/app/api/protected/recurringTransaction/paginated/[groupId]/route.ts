@@ -33,9 +33,10 @@ export async function GET(
         cursor,
       );
 
+    console.log(detailedRecurringTransactions);
     return NextResponse.json({
       recurringTransactions: detailedRecurringTransactions,
-      nextCursor,
+      cursor: nextCursor,
     });
   } catch (err: unknown) {
     console.error("Error in POST /transaction/[groupId]:", err);

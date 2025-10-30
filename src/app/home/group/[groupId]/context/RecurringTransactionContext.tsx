@@ -72,7 +72,14 @@ export function RecurringTransactionProvider({
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch recurring transactions");
 
-      setRecurringTransactions(data.recurringTransactions);
+      if (!recurringTransactionCursor) {
+        setRecurringTransactions(data.recurringTransactions);
+      } else {
+        setRecurringTransactions((prev) => [
+          ...prev,
+          ...data.recurringTransactions,
+        ]);
+      }
       setRecurringTransactionCursor(data.cursor);
       if (!data.cursor) {
         setHasMoreRecurringTransactions(false);
@@ -89,7 +96,7 @@ export function RecurringTransactionProvider({
     } finally {
       setRecurringTransactionsLoading(false);
     }
-  }, [groupId, cursorAttachment]);
+  }, [groupId, cursorAttachment, recurringTransactionCursor]);
 
   useEffect(() => {
     if (!groupId) return;

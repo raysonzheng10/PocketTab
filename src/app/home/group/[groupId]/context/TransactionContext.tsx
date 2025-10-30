@@ -84,7 +84,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     } finally {
       setTransactionsLoading(false);
     }
-  }, [groupId, cursorAttachment]);
+  }, [groupId, cursorAttachment, transactionCursor]);
 
   useEffect(() => {
     if (!groupId) return;

@@ -144,48 +144,47 @@ export default function SplittingCollapsible({
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="pt-4 transition-all duration-300 ease-in-out">
-        <div className="flex flex-col gap-4">
+      <CollapsibleContent className="pt-4">
+        <div className="w-full flex flex-col gap-4 overflow-hidden">
           {/* Member entries with checkboxes and percentage inputs */}
-          <div className="flex flex-col gap-2">
-            {groupMembers?.map((member) => {
-              const isActive = activeMembers.includes(member.id);
-              const split = splits[member.id] || { percentage: 0, amount: 0 };
+          {groupMembers?.map((member) => {
+            const isActive = activeMembers.includes(member.id);
+            const split = splits[member.id] || { percentage: 0, amount: 0 };
 
-              return (
-                <div
-                  key={member.id}
-                  className={`flex flex-row justify-between items-center gap-3 transition ${
-                    !isActive && "opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 h-12">
-                    <Checkbox
-                      checked={isActive}
-                      onCheckedChange={() => toggleMember(member.id)}
-                    />
-                    <div className="flex-1 truncate text-sm font-medium text-gray-800">
-                      {member.nickname}
-                    </div>
+            return (
+              <div
+                key={member.id}
+                className={`flex flex-row items-center gap-1 transition ${
+                  !isActive && "opacity-60"
+                }`}
+              >
+                <div className="flex flex-row items-center gap-2 h-12 flex-1 min-w-0">
+                  <Checkbox
+                    checked={isActive}
+                    onCheckedChange={() => toggleMember(member.id)}
+                    className="shrink-0"
+                  />
+                  <div className="truncate text-sm font-medium text-gray-800">
+                    {member.nickname}
                   </div>
-                  {isActive && (
-                    <div className="flex flex-row items-center gap-2">
-                      <span className="text-sm text-gray-400">
-                        (${split.amount.toFixed(2)})
-                      </span>
-
-                      <PercentageInput
-                        value={split.percentage}
-                        handlePercentageChange={(val) =>
-                          handlePercentageChange(member.id, val)
-                        }
-                      />
-                    </div>
-                  )}
                 </div>
-              );
-            })}
-          </div>
+                {isActive && (
+                  <div className="flex flex-row items-center gap-1.5 shrink-0">
+                    <span className="text-sm text-gray-400 whitespace-nowrap">
+                      ${split.amount.toFixed(2)}
+                    </span>
+
+                    <PercentageInput
+                      value={split.percentage}
+                      handlePercentageChange={(val) =>
+                        handlePercentageChange(member.id, val)
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {isModified && (
             <div className="w-full">
               <Button

@@ -120,12 +120,12 @@ export default function CreateTransactionModal({
         }
       }}
     >
-      <DialogContent className="max-h-2/3 overflow-y-auto">
+      <DialogContent className="max-h-2/3 overflow-y-auto ">
         <DialogHeader>
           <DialogTitle className="text-xl">Create Transaction</DialogTitle>
           <DialogDescription>All fields required!</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField title="Title">
               <Input

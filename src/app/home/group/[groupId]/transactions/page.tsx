@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import AllTransactionsTable from "./components/AllTransactionsTable";
 import { Card, CardContent } from "@/components/ui/card";
+import RecurringTransactionsTable from "./components/RecurringTransactionsTable";
 
 function PageContent() {
   return (
@@ -44,7 +45,9 @@ function PageContent() {
               <TabsContent value="all">
                 <AllTransactionsTable />
               </TabsContent>
-              <TabsContent value="recurring"></TabsContent>
+              <TabsContent value="recurring">
+                <RecurringTransactionsTable />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>

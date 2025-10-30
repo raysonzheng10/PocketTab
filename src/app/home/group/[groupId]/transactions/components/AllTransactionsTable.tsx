@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useTransactions } from "../../context/TransactionContext";
 import InfiniteScroll from "@/components/ui/infinitescroll";
@@ -14,18 +13,14 @@ export default function AllTransactionsTable() {
 
   return (
     <div className="border rounded-lg overflow-auto max-h-[calc(100vh-300px)]">
-      <table className="w-full border-collapse">
+      <table className="min-w-fit w-full border-collapse">
         <thead className="sticky top-0 bg-white border-b z-10">
           <tr>
-            <th className="min-w-[140px] px-4 py-3 text-left text-sm font-medium">
-              Date
-            </th>
-            <th className="min-w-[250px] px-4 py-3 text-left text-sm font-medium">
+            <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+            <th className="px-4 py-3 text-left text-sm font-medium">
               Description
             </th>
-            <th className="min-w-[150px] px-4 py-3 text-left text-sm font-medium">
-              Amount
-            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
           </tr>
         </thead>
         <tbody>

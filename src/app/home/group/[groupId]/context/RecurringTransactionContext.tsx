@@ -94,7 +94,9 @@ export function RecurringTransactionProvider({
   useEffect(() => {
     if (!groupId) return;
     fetchRecurringTransactions();
-  }, [groupId, fetchRecurringTransactions]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId]);
 
   const resetRecurringTransactions = useCallback(async () => {
     if (recurringTransactionsLoading) {

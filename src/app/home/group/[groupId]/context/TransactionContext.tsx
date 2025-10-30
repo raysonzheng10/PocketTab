@@ -62,7 +62,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch transactions");
 
-      setTransactions(data.transactions);
+      setTransactions((prev) => [...prev, ...data.transactions]);
       setTransactionCursor(data.cursor);
       if (!data.cursor) {
         setHasMoreTransactions(false);
@@ -84,7 +84,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!groupId) return;
     fetchTransactions();
-  }, [groupId, fetchTransactions]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId]);
 
   const resetTransactions = useCallback(async () => {
     if (transactionsLoading) {

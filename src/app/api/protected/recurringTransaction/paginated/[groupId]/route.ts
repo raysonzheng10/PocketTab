@@ -33,7 +33,6 @@ export async function GET(
         cursor,
       );
 
-    console.log(detailedRecurringTransactions);
     return NextResponse.json({
       recurringTransactions: detailedRecurringTransactions,
       cursor: nextCursor,

@@ -62,7 +62,12 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch transactions");
 
-      setTransactions((prev) => [...prev, ...data.transactions]);
+      console.log(data.transactions);
+      if (!transactionCursor) {
+        setTransactions(data.transactions);
+      } else {
+        setTransactions((prev) => [...prev, ...data.transactions]);
+      }
       setTransactionCursor(data.cursor);
       if (!data.cursor) {
         setHasMoreTransactions(false);

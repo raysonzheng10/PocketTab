@@ -19,12 +19,7 @@ export default function RecentTransactions({
 
   const recentTransactions = useMemo(() => {
     if (!transactions) return [];
-    return [...transactions]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      .slice(0, 3);
+    return transactions.slice(0, 3);
   }, [transactions]);
 
   const handleNavigateTransactions = () => {

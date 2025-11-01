@@ -44,51 +44,48 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     useState<boolean>(false);
   const [error, setError] = useState("");
 
-  const cursorAttachment = transactionCursor
-    ? `&cursor=${transactionCursor}`
-    : "";
+  const fetchTransactions = useCallback(
+    async (cursor: string) => {
+      setTransactionsLoading(true);
+      const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
-  const fetchTransactions = useCallback(async () => {
-    setTransactionsLoading(true);
-    try {
-      const res = await fetch(
-        `/api/protected/transaction/paginated/${groupId}?limit=5${cursorAttachment}`,
-        {
-          method: "GET",
-        },
-      );
-      const data = await res.json();
+      try {
+        const res = await fetch(
+          `/api/protected/transaction/paginated/${groupId}?limit=5${cursorAttachment}`,
+          { method: "GET" },
+        );
 
-      if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to fetch transactions");
+        const data = await res.json();
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to fetch transactions");
 
-      console.log(data.transactions);
-      if (!transactionCursor) {
-        setTransactions(data.transactions);
-      } else {
-        setTransactions((prev) => [...prev, ...data.transactions]);
+        if (!cursor) {
+          setTransactions(data.transactions);
+        } else {
+          setTransactions((prev) => [...prev, ...data.transactions]);
+        }
+
+        setTransactionCursor(data.cursor);
+        if (!data.cursor) setHasMoreTransactions(false);
+
+        setError("");
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error fetching transactions",
+        );
+        setTransactions([]);
+      } finally {
+        setTransactionsLoading(false);
       }
-      setTransactionCursor(data.cursor);
-      if (!data.cursor) {
-        setHasMoreTransactions(false);
-      }
-
-      setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unknown error fetching transactions",
-      );
-      setTransactions([]);
-    } finally {
-      setTransactionsLoading(false);
-    }
-  }, [groupId, cursorAttachment, transactionCursor]);
+    },
+    [groupId],
+  );
 
   useEffect(() => {
     if (!groupId) return;
-    fetchTransactions();
+    fetchTransactions(transactionCursor);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
@@ -99,7 +96,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }
 
     setTransactionCursor("");
-    await fetchTransactions();
+    await fetchTransactions("");
   }, [fetchTransactions, transactionsLoading]);
 
   const fetchNextTransactions = useCallback(async () => {
@@ -107,8 +104,13 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    await fetchTransactions();
-  }, [fetchTransactions, transactionsLoading, hasMoreTransactions]);
+    await fetchTransactions(transactionCursor);
+  }, [
+    fetchTransactions,
+    transactionsLoading,
+    hasMoreTransactions,
+    transactionCursor,
+  ]);
 
   const createTransaction = useCallback(
     async ({

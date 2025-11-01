@@ -5,31 +5,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import { Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { format } from "date-fns";
+import { useCallback, useEffect, useState } from "react";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Separator } from "@/components/ui/separator";
 import SplittingCollapsible from "./SplittingCollapsible";
 import { useError } from "@/app/home/context/ErrorContext";
 import { ExpenseSplit } from "@/types";
 import { useTransactions } from "../../../context/TransactionContext";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OneTimeTransactionContent from "./OneTimeTransactionContent";
+import RecurringTransactionContent from "./RecurringTransactionContent";
+import { useRecurringTransactions } from "../../../context/RecurringTransactionContext";
 
 export interface CreateTransactionModalProps {
   open: boolean;
@@ -42,13 +29,22 @@ export default function CreateTransactionModal({
 }: CreateTransactionModalProps) {
   const { groupMembers } = useGroup();
   const { createTransaction, createTransactionLoading } = useTransactions();
+  const { createRecurringTransaction, createRecurringTransactionLoading } =
+    useRecurringTransactions();
   const { setError } = useError();
 
+  const [transactionType, setTransactionType] = useState<
+    "one-time" | "recurring"
+  >("one-time");
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
   const [payerId, setPayerId] = useState<string>("");
-  const [isPayerPopoverOpen, setIsPayerPopoverOpen] = useState(false);
+
+  // recurring transaction requirements
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [interval, setInterval] = useState<string>("");
+
   const [isSplitOptionsOpen, setIsSplitOptionsOpen] = useState(false);
   const [expenseSplits, setExpenseSplits] = useState<
     Record<string, ExpenseSplit>
@@ -76,8 +72,9 @@ export default function CreateTransactionModal({
     setTitle("");
     setAmount(0);
     setDate(new Date());
+    setEndDate(undefined);
+    setInterval("");
     setPayerId("");
-    setIsPayerPopoverOpen(false);
     setIsSplitOptionsOpen(false);
     initializeSplits();
     onOpenChange(false);
@@ -96,9 +93,11 @@ export default function CreateTransactionModal({
       setError("Title cannot be empty");
     } else if (!payerId) {
       setError("Paid By cannot be empty");
+    } else if (transactionType == "recurring" && !interval) {
+      setError("Must select an Interval");
     }
 
-    const success = await createTransaction({
+    const transactionSuccess = await createTransaction({
       transactionOwnerId: payerId,
       title,
       amount,
@@ -106,9 +105,30 @@ export default function CreateTransactionModal({
       splits: expenseSplits,
     });
 
-    if (success) {
-      handleCloseModal();
+    if (!transactionSuccess) {
+      setError("Failed to create the transaction.");
+      return;
     }
+
+    if (transactionType === "recurring") {
+      const recurringTransactionSuccess = await createRecurringTransaction({
+        transactionOwnerId: payerId,
+        title,
+        amount,
+        interval,
+        startDate: date,
+        endDate,
+        splits: expenseSplits,
+      });
+
+      if (!recurringTransactionSuccess) {
+        setError(
+          "Failed to create recurring transaction but created the first instance.",
+        );
+      }
+    }
+
+    handleCloseModal();
   };
 
   return (
@@ -125,101 +145,42 @@ export default function CreateTransactionModal({
           <DialogTitle className="text-xl">Create Transaction</DialogTitle>
           <DialogDescription>All fields required!</DialogDescription>
         </DialogHeader>
+        <Tabs
+          value={transactionType}
+          onValueChange={(v) =>
+            setTransactionType(v as "one-time" | "recurring")
+          }
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="one-time">One-time</TabsTrigger>
+            <TabsTrigger value="recurring">Recurring</TabsTrigger>
+          </TabsList>
+
+          <OneTimeTransactionContent
+            title={title}
+            setTitle={setTitle}
+            setAmount={setAmount}
+            date={date}
+            setDate={setDate}
+            payerId={payerId}
+            setPayerId={setPayerId}
+          />
+          <RecurringTransactionContent
+            title={title}
+            setTitle={setTitle}
+            setAmount={setAmount}
+            date={date}
+            setDate={setDate}
+            payerId={payerId}
+            setPayerId={setPayerId}
+            interval={interval}
+            setInterval={setInterval}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
+        </Tabs>
+
         <div className="flex flex-col gap-8 overflow-hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField title="Title">
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Transaction title"
-              />
-            </FormField>
-
-            <FormField title="Amount">
-              <AmountInput setAmount={setAmount} />
-            </FormField>
-
-            <FormField title="Date">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 size-4" />
-                    {date ? format(date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 max-w-[min(400px,calc(100vw-2rem))]">
-                  <Calendar
-                    mode="single"
-                    required={true}
-                    selected={date}
-                    onSelect={setDate}
-                    className="scale-90 sm:scale-100"
-                  />
-                </PopoverContent>
-              </Popover>
-            </FormField>
-
-            <FormField title="Paid By">
-              <Popover
-                open={isPayerPopoverOpen}
-                onOpenChange={setIsPayerPopoverOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
-                  >
-                    <span className="truncate mr-1">
-                      {payerId
-                        ? groupMembers?.find((member) => member.id === payerId)
-                            ?.nickname
-                        : "Select member..."}
-                    </span>
-                    <ChevronsUpDown className="size-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    {/* Only show search bar if there are more than 3 groupmembers */}
-                    {groupMembers.length > 3 && (
-                      <CommandInput
-                        placeholder="Search member..."
-                        className="w-full"
-                      />
-                    )}
-
-                    <CommandList>
-                      <CommandEmpty className="w-full">
-                        No member found.
-                      </CommandEmpty>
-                      <CommandGroup className="w-full">
-                        {groupMembers?.map((member) => (
-                          <CommandItem
-                            key={member.id}
-                            value={member.nickname}
-                            onSelect={() => {
-                              setPayerId(member.id);
-                              setIsPayerPopoverOpen(false);
-                            }}
-                            className="w-full"
-                          >
-                            <Check
-                              className={`size-4 ${payerId != member.id && "opacity-0"}`}
-                            />
-                            <span className="truncate">{member.nickname}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </FormField>
-          </div>
-
           <Separator />
           <SplittingCollapsible
             open={isSplitOptionsOpen}
@@ -230,8 +191,12 @@ export default function CreateTransactionModal({
           />
 
           <Button
-            disabled={createTransactionLoading}
-            loading={createTransactionLoading}
+            disabled={
+              createTransactionLoading || createRecurringTransactionLoading
+            }
+            loading={
+              createTransactionLoading || createRecurringTransactionLoading
+            }
             onClick={handleCreateTransaction}
           >
             Create
@@ -239,71 +204,5 @@ export default function CreateTransactionModal({
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function FormField({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="text-sm font-medium">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function AmountInput({ setAmount }: { setAmount: (amount: number) => void }) {
-  const [inputValue, setInputValue] = useState<string>("");
-
-  const handleInputChange = (input: string) => {
-    const cleaned = input.replace(/[^\d.]/g, ""); // remove bad chars
-    const parts = cleaned.split(".");
-    let result = parts[0];
-
-    if (parts.length > 1) {
-      // Take only first 2 digits after decimal
-      result += "." + parts[1].substring(0, 2);
-    }
-
-    setInputValue(result);
-  };
-
-  const handleBlur = () => {
-    // when the user clicks off, we fix the inputValueString to look nice
-
-    // if empty, just reset
-    if (inputValue === "" || inputValue === ".") {
-      setAmount(0);
-      setInputValue("");
-      return;
-    }
-
-    const parsed = parseFloat(inputValue);
-    if (isNaN(parsed)) {
-      setAmount(0);
-      setInputValue("");
-    } else {
-      setAmount(parsed);
-      setInputValue(parsed.toFixed(2));
-    }
-  };
-
-  return (
-    <div className="relative">
-      <span className="absolute left-3 translate-y-1/4">$</span>
-      <Input
-        type="text"
-        value={inputValue}
-        onChange={(e) => handleInputChange(e.target.value)}
-        onBlur={handleBlur}
-        placeholder="0.00"
-        className="pl-6"
-      />
-    </div>
   );
 }

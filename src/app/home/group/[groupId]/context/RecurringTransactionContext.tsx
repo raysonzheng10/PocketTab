@@ -22,6 +22,7 @@ type RecurringTransactionContextType = {
     amount: number;
     interval: string;
     startDate: Date;
+    endDate?: Date;
     splits: Record<string, ExpenseSplit>;
   }) => Promise<boolean>;
   createRecurringTransactionLoading: boolean;
@@ -54,53 +55,56 @@ export function RecurringTransactionProvider({
   ] = useState<boolean>(false);
   const [error, setError] = useState("");
 
-  const cursorAttachment = recurringTransactionCursor
-    ? `&cursor=${recurringTransactionCursor}`
-    : "";
+  const fetchRecurringTransactions = useCallback(
+    async (cursor: string) => {
+      setRecurringTransactionsLoading(true);
+      const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
-  const fetchRecurringTransactions = useCallback(async () => {
-    setRecurringTransactionsLoading(true);
-    try {
-      const res = await fetch(
-        `/api/protected/recurringTransaction/paginated/${groupId}?limit=5${cursorAttachment}`,
-        {
-          method: "GET",
-        },
-      );
-      const data = await res.json();
+      try {
+        const res = await fetch(
+          `/api/protected/recurringTransaction/paginated/${groupId}?limit=5${cursorAttachment}`,
+          {
+            method: "GET",
+          },
+        );
+        const data = await res.json();
 
-      if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to fetch recurring transactions");
+        if (!res.ok || data.error)
+          throw new Error(
+            data.error || "Failed to fetch recurring transactions",
+          );
 
-      if (!recurringTransactionCursor) {
-        setRecurringTransactions(data.recurringTransactions);
-      } else {
-        setRecurringTransactions((prev) => [
-          ...prev,
-          ...data.recurringTransactions,
-        ]);
+        if (!cursor) {
+          setRecurringTransactions(data.recurringTransactions);
+        } else {
+          setRecurringTransactions((prev) => [
+            ...prev,
+            ...data.recurringTransactions,
+          ]);
+        }
+        setRecurringTransactionCursor(data.cursor);
+        if (!data.cursor) {
+          setHasMoreRecurringTransactions(false);
+        }
+
+        setError("");
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error fetching recurring transactions",
+        );
+        setRecurringTransactions([]);
+      } finally {
+        setRecurringTransactionsLoading(false);
       }
-      setRecurringTransactionCursor(data.cursor);
-      if (!data.cursor) {
-        setHasMoreRecurringTransactions(false);
-      }
-
-      setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unknown error fetching recurring transactions",
-      );
-      setRecurringTransactions([]);
-    } finally {
-      setRecurringTransactionsLoading(false);
-    }
-  }, [groupId, cursorAttachment, recurringTransactionCursor]);
+    },
+    [groupId],
+  );
 
   useEffect(() => {
     if (!groupId) return;
-    fetchRecurringTransactions();
+    fetchRecurringTransactions(recurringTransactionCursor);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
@@ -111,7 +115,7 @@ export function RecurringTransactionProvider({
     }
 
     setRecurringTransactionCursor("");
-    await fetchRecurringTransactions();
+    await fetchRecurringTransactions("");
   }, [fetchRecurringTransactions, recurringTransactionsLoading]);
 
   const fetchNextRecurringTransactions = useCallback(async () => {
@@ -119,11 +123,12 @@ export function RecurringTransactionProvider({
       return;
     }
 
-    await fetchRecurringTransactions();
+    await fetchRecurringTransactions(recurringTransactionCursor);
   }, [
     fetchRecurringTransactions,
     recurringTransactionsLoading,
     hasMoreRecurringTransactions,
+    recurringTransactionCursor,
   ]);
 
   const createRecurringTransaction = useCallback(
@@ -133,6 +138,7 @@ export function RecurringTransactionProvider({
       amount,
       interval,
       startDate,
+      endDate,
       splits,
     }: {
       transactionOwnerId: string;
@@ -140,6 +146,7 @@ export function RecurringTransactionProvider({
       amount: number;
       interval: string;
       startDate: Date;
+      endDate?: Date;
       splits: Record<string, ExpenseSplit>;
     }) => {
       setIsCreateRecurringTransactionLoading(true);
@@ -161,6 +168,7 @@ export function RecurringTransactionProvider({
             interval,
             startDate,
             splits: transformedSplits,
+            ...(endDate && { endDate }),
           }),
         });
         const data = await res.json();

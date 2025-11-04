@@ -4,15 +4,9 @@ import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { useTransactions } from "../../context/TransactionContext";
+import { useTransactions } from "../../../context/TransactionContext";
 
-interface RecentTransactionsProps {
-  onCreateTransaction: () => void;
-}
-
-export default function RecentTransactions({
-  onCreateTransaction,
-}: RecentTransactionsProps) {
+export default function RecentTransactions() {
   const router = useRouter();
   const { groupId } = useGroup();
   const { transactions } = useTransactions();
@@ -31,9 +25,15 @@ export default function RecentTransactions({
     <div>
       <div className="flex flex-row justify-between items-center py-3 mb-4">
         <h3 className="text-xl font-semibold">Recent Transactions</h3>
-        <Button variant="outline" onClick={onCreateTransaction}>
-          Create Transaction
-        </Button>
+        {recentTransactions.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNavigateTransactions}
+          >
+            All Transactions
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -71,15 +71,6 @@ export default function RecentTransactions({
           ))
         )}
       </div>
-      {recentTransactions.length > 0 && (
-        <Button
-          variant="ghost"
-          className="w-full mt-3"
-          onClick={handleNavigateTransactions}
-        >
-          See All Transactions
-        </Button>
-      )}
     </div>
   );
 }

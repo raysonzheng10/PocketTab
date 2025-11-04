@@ -3,8 +3,9 @@ import { Suspense, useEffect, useState } from "react";
 import { useError } from "../../context/ErrorContext";
 import { useGroup } from "../../context/GroupContext";
 import GroupCard from "./components/dashboard/GroupCard";
-import CreateTransactionModal from "./components/dashboard/CreateTransactionModal/CreateTransactionModal";
-import DashboardCard from "./components/dashboard/DashboardCard";
+import CreateTransactionModal from "./components/CreateTransactionModal/CreateTransactionModal";
+import DashboardCard from "./components/dashboard/DashboardCard/DashboardCard";
+import ActionButtons from "./components/dashboard/ActionButtons";
 
 function PageContent() {
   const { setError } = useError();
@@ -21,9 +22,12 @@ function PageContent() {
     <div className="h-full overflow-y-auto p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <GroupCard />
-        <DashboardCard
-          openCreateTransactionModal={setIsCreateTransactionModalOpen}
+
+        <ActionButtons
+          onAddTransaction={() => setIsCreateTransactionModalOpen(true)}
         />
+
+        <DashboardCard />
       </div>
       <CreateTransactionModal
         open={isCreateTransactionModalOpen}

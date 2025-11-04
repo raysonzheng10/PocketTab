@@ -4,7 +4,7 @@ import TransactionsCard from "./components/TransactionsCard";
 import { useError } from "@/app/home/context/ErrorContext";
 import { useTransactions } from "../context/TransactionContext";
 import { useRecurringTransactions } from "../context/RecurringTransactionContext";
-import CreateTransactionModal from "../components/dashboard/CreateTransactionModal/CreateTransactionModal";
+import CreateTransactionModal from "../components/CreateTransactionModal/CreateTransactionModal";
 
 function PageContent() {
   const { setError } = useError();

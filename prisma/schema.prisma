@@ -51,14 +51,15 @@ model GroupMember {
 }
 
 model Transaction {
-  id            String   @id @default(uuid()) @db.Uuid
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
-  date          DateTime @default(now()) // actual transaction date
-  groupId       String   @db.Uuid
-  groupMemberId String   @db.Uuid
-  amount        Decimal
-  title         String
+  id              String   @id @default(uuid()) @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  date            DateTime @default(now()) // actual transaction date
+  groupId         String   @db.Uuid
+  groupMemberId   String   @db.Uuid
+  amount          Decimal
+  title           String
+  isReimbursement Boolean  @default(false)
 
   expenses    Expense[] // Each transaction creates multiple expenses (these are the splits)
   group       Group       @relation(fields: [groupId], references: [id])

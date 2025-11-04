@@ -11,11 +11,11 @@ import { Separator } from "@/components/ui/separator";
 import SplittingCollapsible from "./SplittingCollapsible";
 import { useError } from "@/app/home/context/ErrorContext";
 import { ExpenseSplit } from "@/types";
-import { useTransactions } from "../../../context/TransactionContext";
+import { useTransactions } from "../../context/TransactionContext";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OneTimeTransactionContent from "./OneTimeTransactionContent";
 import RecurringTransactionContent from "./RecurringTransactionContent";
-import { useRecurringTransactions } from "../../../context/RecurringTransactionContext";
+import { useRecurringTransactions } from "../../context/RecurringTransactionContext";
 
 export interface CreateTransactionModalProps {
   open: boolean;

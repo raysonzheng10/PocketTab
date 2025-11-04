@@ -45,14 +45,14 @@ export default function AllTransactionsTable() {
                   colSpan={5}
                   className="text-center py-4 text-muted-foreground"
                 >
-                  No recurring transactions found
+                  No transactions found
                 </TableCell>
               </TableRow>
             ) : (
               transactions.map((t) => (
                 <TableRow
                   key={t.id}
-                  className="cursor-pointer"
+                  className="hover:bg-muted cursor-pointer"
                   onClick={() => setSelectedTransaction(t)}
                 >
                   <TableCell className="whitespace-nowrap">

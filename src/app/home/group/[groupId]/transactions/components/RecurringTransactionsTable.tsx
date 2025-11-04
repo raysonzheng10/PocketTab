@@ -49,7 +49,7 @@ export default function RecurringTransactionsTable() {
               recurringTransactions.map((t) => (
                 <TableRow
                   key={t.id}
-                  className="cursor-pointer"
+                  className="hover:bg-muted cursor-pointer"
                   onClick={() => setSelectedTransaction(t)}
                 >
                   <TableCell className="whitespace-nowrap">

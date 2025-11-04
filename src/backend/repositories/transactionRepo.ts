@@ -1,36 +1,56 @@
 import { prisma } from "../db";
 import { Prisma } from "@prisma/client";
 
+export type TransactionWithGroupMemberAndExpenses =
+  Prisma.TransactionGetPayload<{
+    include: {
+      groupMember: true;
+      expenses: {
+        include: {
+          groupMember: true;
+        };
+      };
+    };
+  }>;
+
 export type TransactionWithGroupMember = Prisma.TransactionGetPayload<{
   include: { groupMember: true };
 }>;
 
 // get transactions
-export async function getTransactionsWithGroupMemberByGroupIdPaginated(
+export async function getTransactionsWithGroupMemberAndExpensesByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ): Promise<{
-  transactionsWithGroupMember: TransactionWithGroupMember[];
+  transactionsWithGroupMemberAndExpenses: TransactionWithGroupMemberAndExpenses[];
   nextCursor: string | null;
 }> {
-  const transactionsWithGroupMember = await prisma.transaction.findMany({
-    where: { groupId },
-    include: { groupMember: true },
-    orderBy: { createdAt: "desc" },
-    take: limit + 1,
-    ...(cursor ? { cursor: { id: cursor } } : {}), // cursor defined ? add in cursor: {id: cursor} : add in {}
-  });
+  const transactionsWithGroupMemberAndExpenses =
+    await prisma.transaction.findMany({
+      where: { groupId },
+      include: {
+        groupMember: true,
+        expenses: {
+          include: {
+            groupMember: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor } } : {}), // cursor defined ? add in cursor: {id: cursor} : add in {}
+    });
 
   let nextCursor: string | null = null;
 
   // grab next cursor if possible
-  if (transactionsWithGroupMember.length > limit) {
-    const nextItem = transactionsWithGroupMember.pop();
+  if (transactionsWithGroupMemberAndExpenses.length > limit) {
+    const nextItem = transactionsWithGroupMemberAndExpenses.pop();
     nextCursor = nextItem?.id || null;
   }
 
-  return { transactionsWithGroupMember, nextCursor };
+  return { transactionsWithGroupMemberAndExpenses, nextCursor };
 }
 
 export async function getTransactionsWithGroupMemberByGroupId(

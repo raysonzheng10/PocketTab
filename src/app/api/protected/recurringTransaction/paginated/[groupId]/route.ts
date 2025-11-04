@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(Number(searchParams.get("limit")) || 10, 10); // max of 10 recurring transactions per req
+    const limit = Math.min(Number(searchParams.get("limit")) || 10); // ? pagination should be unused right now
     const cursor = searchParams.get("cursor") || undefined;
 
     const { detailedRecurringTransactions, nextCursor } =

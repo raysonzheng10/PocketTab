@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
-import { getRecurringTransactionWithGroupMemberByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
+import { getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
 
 type expense = {
   groupMemberId: string;
@@ -80,15 +80,18 @@ export async function getDetailedRecurringTransactionsByGroupIdPaginated(
   limit: number,
   cursor?: string,
 ) {
-  const { recurringTransactionsWithGroupMember, nextCursor } =
-    await getRecurringTransactionWithGroupMemberByGroupIdPaginated(
+  const {
+    recurringTransactionsWithGroupMemberAndRecurringExpenses,
+    nextCursor,
+  } =
+    await getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
       groupId,
       limit,
       cursor,
     );
 
   const detailedRecurringTransactions =
-    recurringTransactionsWithGroupMember.map((t) => ({
+    recurringTransactionsWithGroupMemberAndRecurringExpenses.map((t) => ({
       id: t.id,
       createdAt: t.createdAt,
       title: t.title,
@@ -99,6 +102,11 @@ export async function getDetailedRecurringTransactionsByGroupIdPaginated(
       nextOccurence: t.nextOccurrence,
       groupMemberId: t.groupMemberId,
       groupMemberNickname: t.groupMember.nickname,
+      detailedExpenses: t.recurringExpenses.map((e) => ({
+        groupMemberId: e.groupMemberId,
+        groupMemberNickname: e.groupMember.nickname,
+        amount: e.amount,
+      })),
     }));
 
   return { detailedRecurringTransactions, nextCursor };

@@ -43,15 +43,22 @@ export async function updateRecurringTransaction(
   });
 }
 
-export async function getRecurringTransactionWithGroupMemberByGroupIdPaginated(
+export async function getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ) {
-  const recurringTransactionsWithGroupMember =
+  const recurringTransactionsWithGroupMemberAndRecurringExpenses =
     await prisma.recurringTransaction.findMany({
       where: { groupId },
-      include: { groupMember: true },
+      include: {
+        groupMember: true,
+        recurringExpenses: {
+          include: {
+            groupMember: true,
+          },
+        },
+      },
       orderBy: { nextOccurrence: "asc" }, // order by soonest reoccurence -> latest
       take: limit + 1,
       ...(cursor ? { cursor: { id: cursor } } : {}),
@@ -59,10 +66,14 @@ export async function getRecurringTransactionWithGroupMemberByGroupIdPaginated(
 
   let nextCursor: string | null = null;
   // grab next cursor if possible
-  if (recurringTransactionsWithGroupMember.length > limit) {
-    const nextItem = recurringTransactionsWithGroupMember.pop();
+  if (recurringTransactionsWithGroupMemberAndRecurringExpenses.length > limit) {
+    const nextItem =
+      recurringTransactionsWithGroupMemberAndRecurringExpenses.pop();
     nextCursor = nextItem?.id || null;
   }
 
-  return { recurringTransactionsWithGroupMember, nextCursor };
+  return {
+    recurringTransactionsWithGroupMemberAndRecurringExpenses,
+    nextCursor,
+  };
 }

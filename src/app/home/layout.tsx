@@ -31,16 +31,6 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const getMobileTitle = () => {
-    if (pathname.endsWith("/home")) return "Manage Groups";
-    if (pathname.endsWith("/account")) return "Account Settings";
-    if (pathname.endsWith("/settings")) return "Group Settings";
-    if (pathname.endsWith("/transactions")) return "Transactions";
-    if (pathname.endsWith("/settlements")) return "Settlements";
-    if (pathname.endsWith("/members")) return "Members";
-    return "Dashboard";
-  };
-
   const isGroupPage = pathname.startsWith("/home/group");
 
   // Handle user errors
@@ -58,7 +48,6 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
 
       {/* Mobile header is z-40 */}
       <MobileHeader
-        title={getMobileTitle()}
         onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 

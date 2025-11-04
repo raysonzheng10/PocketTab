@@ -1,7 +1,19 @@
 "use client";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useTransactions } from "../../context/TransactionContext";
 import InfiniteScroll from "@/components/ui/infinitescroll";
+import { DetailedTransaction } from "@/types";
+import { formatAmount, formatDate } from "@/app/utils/utils";
+import TransactionSheet from "./TransactionSheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AllTransactionsTable() {
   const {
@@ -11,44 +23,58 @@ export default function AllTransactionsTable() {
     fetchNextTransactions,
   } = useTransactions();
 
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<DetailedTransaction | null>(null);
+
   return (
-    <div className="border rounded-lg overflow-auto max-h-[calc(100vh-300px)]">
-      <table className="min-w-fit w-full border-collapse">
-        <thead className="sticky top-0 bg-white border-b z-10">
-          <tr>
-            <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">
-              Description
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.map((t) => (
-            <tr key={t.id} className="border-b">
-              <td className="px-4 py-3 text-sm whitespace-nowrap">
-                {new Date(t.date).toLocaleDateString()}
-              </td>
-              <td className="px-4 py-3 text-sm">{t.title}</td>
-              <td className="px-4 py-3 text-sm whitespace-nowrap">
-                ${t.amount}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <InfiniteScroll
-        hasMore={hasMoreTransactions}
-        isLoading={transactionsLoading}
-        next={fetchNextTransactions}
-        threshold={0.5}
-      >
-        {hasMoreTransactions && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="size-6 animate-spin" />
-          </div>
-        )}
-      </InfiniteScroll>
-    </div>
+    <>
+      <div className="border rounded-lg overflow-auto max-h-[calc(100vh-250px)]">
+        <Table>
+          <TableHeader className="sticky top-0 bg-white z-10">
+            <TableRow>
+              <TableHead className="font-bold">Date</TableHead>
+              <TableHead className="font-bold">Description</TableHead>
+              <TableHead className="font-bold">Paid By</TableHead>
+              <TableHead className="font-bold text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {transactions.map((t) => (
+              <TableRow
+                key={t.id}
+                className="cursor-pointer"
+                onClick={() => setSelectedTransaction(t)}
+              >
+                <TableCell className="whitespace-nowrap">
+                  {formatDate(t.date)}
+                </TableCell>
+                <TableCell>{t.title}</TableCell>
+                <TableCell>{t.groupMemberNickname}</TableCell>
+                <TableCell className="whitespace-nowrap text-right">
+                  {formatAmount(t.amount)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <InfiniteScroll
+          hasMore={hasMoreTransactions}
+          isLoading={transactionsLoading}
+          next={fetchNextTransactions}
+          threshold={0.5}
+        >
+          {hasMoreTransactions && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="size-6 animate-spin" />
+            </div>
+          )}
+        </InfiniteScroll>
+      </div>
+
+      <TransactionSheet
+        selectedTransaction={selectedTransaction}
+        setSelectedTransaction={setSelectedTransaction}
+      />
+    </>
   );
 }

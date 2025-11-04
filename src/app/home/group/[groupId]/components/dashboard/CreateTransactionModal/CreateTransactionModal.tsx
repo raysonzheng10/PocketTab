@@ -1,7 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -143,7 +142,6 @@ export default function CreateTransactionModal({
       <DialogContent className="max-h-2/3 overflow-y-auto ">
         <DialogHeader>
           <DialogTitle className="text-xl">Create Transaction</DialogTitle>
-          <DialogDescription>All fields required!</DialogDescription>
         </DialogHeader>
         <Tabs
           value={transactionType}

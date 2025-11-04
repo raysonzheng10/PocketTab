@@ -1,6 +1,10 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { DetailedTransaction, Expense, ExpenseSplit } from "@/types";
+import {
+  DetailedTransaction,
+  CreateTransactionExpense,
+  ExpenseSplit,
+} from "@/types";
 import {
   createContext,
   useContext,
@@ -128,12 +132,12 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }) => {
       setIsCreateTransactionLoading(true);
       try {
-        const transformedSplits: Expense[] = Object.entries(splits).map(
-          ([id, split]) => ({
-            groupMemberId: id,
-            amount: split.amount,
-          }),
-        );
+        const transformedSplits: CreateTransactionExpense[] = Object.entries(
+          splits,
+        ).map(([id, split]) => ({
+          groupMemberId: id,
+          amount: split.amount,
+        }));
 
         const res = await fetch(`/api/protected/transaction/create`, {
           method: "POST",

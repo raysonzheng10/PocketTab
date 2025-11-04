@@ -6,9 +6,15 @@ export interface DetailedTransaction {
   date: Date;
   groupMemberId: string;
   groupMemberNickname: string;
+  detailedExpenses: DetailedExpense[];
 }
 
-export interface Expense {
+export interface DetailedExpense {
+  groupMemberId: string;
+  groupMemberNickname: string;
+  amount: number;
+}
+export interface CreateTransactionExpense {
   groupMemberId: string;
   amount: number;
 }

@@ -1,6 +1,10 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { DetailedRecurringTransaction, Expense, ExpenseSplit } from "@/types";
+import {
+  DetailedRecurringTransaction,
+  CreateTransactionExpense,
+  ExpenseSplit,
+} from "@/types";
 import {
   createContext,
   useContext,
@@ -10,12 +14,15 @@ import {
   useCallback,
 } from "react";
 
+// ! Able to do pagination but for now disabling it
+// ! Groups should realistically have some limit of ~10 recurringTransactions
+// ! Pagination is excessive and unhelpful at that scale
 type RecurringTransactionContextType = {
   recurringTransactions: DetailedRecurringTransaction[];
   recurringTransactionsLoading: boolean;
   resetRecurringTransactions: () => Promise<void>;
-  fetchNextRecurringTransactions: () => Promise<void>;
-  hasMoreRecurringTransactions: boolean;
+  // fetchNextRecurringTransactions: () => Promise<void>;
+  // hasMoreRecurringTransactions: boolean;
   createRecurringTransaction: (params: {
     transactionOwnerId: string;
     title: string;
@@ -45,10 +52,10 @@ export function RecurringTransactionProvider({
   >([]);
   const [recurringTransactionsLoading, setRecurringTransactionsLoading] =
     useState<boolean>(true);
-  const [recurringTransactionCursor, setRecurringTransactionCursor] =
-    useState<string>("");
-  const [hasMoreRecurringTransactions, setHasMoreRecurringTransactions] =
-    useState<boolean>(true);
+  // const [recurringTransactionCursor, setRecurringTransactionCursor] =
+  //   useState<string>("");
+  // const [hasMoreRecurringTransactions, setHasMoreRecurringTransactions] =
+  //   useState<boolean>(true);
   const [
     isCreateRecurringTransactionLoading,
     setIsCreateRecurringTransactionLoading,
@@ -62,7 +69,7 @@ export function RecurringTransactionProvider({
 
       try {
         const res = await fetch(
-          `/api/protected/recurringTransaction/paginated/${groupId}?limit=5${cursorAttachment}`,
+          `/api/protected/recurringTransaction/paginated/${groupId}?limit=20${cursorAttachment}`,
           {
             method: "GET",
           },
@@ -74,18 +81,21 @@ export function RecurringTransactionProvider({
             data.error || "Failed to fetch recurring transactions",
           );
 
-        if (!cursor) {
-          setRecurringTransactions(data.recurringTransactions);
-        } else {
-          setRecurringTransactions((prev) => [
-            ...prev,
-            ...data.recurringTransactions,
-          ]);
-        }
-        setRecurringTransactionCursor(data.cursor);
-        if (!data.cursor) {
-          setHasMoreRecurringTransactions(false);
-        }
+        setRecurringTransactions(data.recurringTransactions);
+
+        // if (!cursor) {
+        //   setRecurringTransactions(data.recurringTransactions);
+        // } else {
+        //   setRecurringTransactions((prev) => [
+        //     ...prev,
+        //     ...data.recurringTransactions,
+        //   ]);
+        // }
+
+        // setRecurringTransactionCursor(data.cursor);
+        // if (!data.cursor) {
+        //   setHasMoreRecurringTransactions(false);
+        // }
 
         setError("");
       } catch (err: unknown) {
@@ -104,8 +114,9 @@ export function RecurringTransactionProvider({
 
   useEffect(() => {
     if (!groupId) return;
-    fetchRecurringTransactions(recurringTransactionCursor);
+    fetchRecurringTransactions("");
 
+    // fetchRecurringTransactions(recurringTransactionCursor);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
@@ -114,22 +125,22 @@ export function RecurringTransactionProvider({
       return;
     }
 
-    setRecurringTransactionCursor("");
+    // setRecurringTransactionCursor("");
     await fetchRecurringTransactions("");
   }, [fetchRecurringTransactions, recurringTransactionsLoading]);
 
-  const fetchNextRecurringTransactions = useCallback(async () => {
-    if (recurringTransactionsLoading || !hasMoreRecurringTransactions) {
-      return;
-    }
+  // const fetchNextRecurringTransactions = useCallback(async () => {
+  //   if (recurringTransactionsLoading || !hasMoreRecurringTransactions) {
+  //     return;
+  //   }
 
-    await fetchRecurringTransactions(recurringTransactionCursor);
-  }, [
-    fetchRecurringTransactions,
-    recurringTransactionsLoading,
-    hasMoreRecurringTransactions,
-    recurringTransactionCursor,
-  ]);
+  //   await fetchRecurringTransactions(recurringTransactionCursor);
+  // }, [
+  //   fetchRecurringTransactions,
+  //   recurringTransactionsLoading,
+  //   hasMoreRecurringTransactions,
+  //   recurringTransactionCursor,
+  // ]);
 
   const createRecurringTransaction = useCallback(
     async ({
@@ -151,12 +162,12 @@ export function RecurringTransactionProvider({
     }) => {
       setIsCreateRecurringTransactionLoading(true);
       try {
-        const transformedSplits: Expense[] = Object.entries(splits).map(
-          ([id, split]) => ({
-            groupMemberId: id,
-            amount: split.amount,
-          }),
-        );
+        const transformedSplits: CreateTransactionExpense[] = Object.entries(
+          splits,
+        ).map(([id, split]) => ({
+          groupMemberId: id,
+          amount: split.amount,
+        }));
 
         const res = await fetch(`/api/protected/recurringTransaction/create`, {
           method: "POST",
@@ -201,8 +212,8 @@ export function RecurringTransactionProvider({
         recurringTransactions,
         recurringTransactionsLoading,
         resetRecurringTransactions,
-        fetchNextRecurringTransactions,
-        hasMoreRecurringTransactions,
+        // fetchNextRecurringTransactions,
+        // hasMoreRecurringTransactions,
         createRecurringTransaction,
         createRecurringTransactionLoading: isCreateRecurringTransactionLoading,
         error,

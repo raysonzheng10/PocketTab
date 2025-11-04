@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { getRecurringTransactionWithRecurringExpensesById } from "../repositories/recurringTransactionRepo";
 import {
   getTransactionsWithGroupMemberByGroupId,
-  getTransactionsWithGroupMemberByGroupIdPaginated,
+  getTransactionsWithGroupMemberAndExpensesByGroupIdPaginated,
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
@@ -161,22 +161,29 @@ export async function getDetailedTransactionsByGroupIdPaginated(
   limit: number,
   cursor?: string,
 ) {
-  const { transactionsWithGroupMember, nextCursor } =
-    await getTransactionsWithGroupMemberByGroupIdPaginated(
+  const { transactionsWithGroupMemberAndExpenses, nextCursor } =
+    await getTransactionsWithGroupMemberAndExpensesByGroupIdPaginated(
       groupId,
       limit,
       cursor,
     );
 
-  const detailedTransactions = transactionsWithGroupMember.map((t) => ({
-    id: t.id,
-    createdAt: t.createdAt,
-    amount: t.amount,
-    title: t.title,
-    date: t.date,
-    groupMemberId: t.groupMemberId,
-    groupMemberNickname: t.groupMember.nickname,
-  }));
+  const detailedTransactions = transactionsWithGroupMemberAndExpenses.map(
+    (t) => ({
+      id: t.id,
+      createdAt: t.createdAt,
+      amount: t.amount,
+      title: t.title,
+      date: t.date,
+      groupMemberId: t.groupMemberId,
+      groupMemberNickname: t.groupMember.nickname,
+      detailedExpenses: t.expenses.map((e) => ({
+        groupMemberId: e.groupMemberId,
+        groupMemberNickname: e.groupMember.nickname,
+        amount: e.amount,
+      })),
+    }),
+  );
 
   return { detailedTransactions, nextCursor };
 }

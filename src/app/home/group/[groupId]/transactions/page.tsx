@@ -15,7 +15,7 @@ function PageContent() {
           <CardContent className="pt-0 space-y-3">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-xl lg:text-3xl font-bold">Transactions</h1>
-              <Button>
+              <Button size={"sm"}>
                 <Plus className="size-4" />
                 <span className="hidden sm:inline">Add Transaction</span>
                 <span className="sm:hidden">Add</span>

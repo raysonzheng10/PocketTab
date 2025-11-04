@@ -39,22 +39,33 @@ export default function AllTransactionsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((t) => (
-              <TableRow
-                key={t.id}
-                className="cursor-pointer"
-                onClick={() => setSelectedTransaction(t)}
-              >
-                <TableCell className="whitespace-nowrap">
-                  {formatDate(t.date)}
-                </TableCell>
-                <TableCell>{t.title}</TableCell>
-                <TableCell>{t.groupMemberNickname}</TableCell>
-                <TableCell className="whitespace-nowrap text-right">
-                  {formatAmount(t.amount)}
+            {transactions.length === 0 && !transactionsLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  No recurring transactions found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              transactions.map((t) => (
+                <TableRow
+                  key={t.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedTransaction(t)}
+                >
+                  <TableCell className="whitespace-nowrap">
+                    {formatDate(t.date)}
+                  </TableCell>
+                  <TableCell>{t.title}</TableCell>
+                  <TableCell>{t.groupMemberNickname}</TableCell>
+                  <TableCell className="whitespace-nowrap text-right">
+                    {formatAmount(t.amount)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
         <InfiniteScroll

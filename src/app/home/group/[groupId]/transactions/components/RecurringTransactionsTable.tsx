@@ -12,9 +12,11 @@ import { formatAmount, formatDate } from "@/app/utils/utils";
 import { DetailedRecurringTransaction } from "@/types";
 import { useState } from "react";
 import RecurringTransactionSheet from "./RecurringTransactionSheet";
+import { Loader2 } from "lucide-react";
 
 export default function RecurringTransactionsTable() {
-  const { recurringTransactions } = useRecurringTransactions();
+  const { recurringTransactions, recurringTransactionsLoading } =
+    useRecurringTransactions();
 
   const [selectedTransaction, setSelectedTransaction] =
     useState<DetailedRecurringTransaction | null>(null);
@@ -33,25 +35,42 @@ export default function RecurringTransactionsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recurringTransactions.map((t) => (
-              <TableRow
-                key={t.id}
-                className="cursor-pointer"
-                onClick={() => setSelectedTransaction(t)}
-              >
-                <TableCell className="whitespace-nowrap">
-                  {formatDate(t.nextOccurence)}
-                </TableCell>
-                <TableCell>{t.title}</TableCell>
-                <TableCell className="capitalize">{t.interval}</TableCell>
-                <TableCell>{t.groupMemberNickname}</TableCell>
-                <TableCell className="whitespace-nowrap text-right">
-                  {formatAmount(t.amount)}
+            {recurringTransactions.length === 0 &&
+            !recurringTransactionsLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  No recurring transactions found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              recurringTransactions.map((t) => (
+                <TableRow
+                  key={t.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedTransaction(t)}
+                >
+                  <TableCell className="whitespace-nowrap">
+                    {formatDate(t.nextOccurence)}
+                  </TableCell>
+                  <TableCell>{t.title}</TableCell>
+                  <TableCell className="capitalize">{t.interval}</TableCell>
+                  <TableCell>{t.groupMemberNickname}</TableCell>
+                  <TableCell className="whitespace-nowrap text-right">
+                    {formatAmount(t.amount)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
+        {recurringTransactionsLoading && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="size-6 animate-spin" />
+          </div>
+        )}
       </div>
 
       <RecurringTransactionSheet

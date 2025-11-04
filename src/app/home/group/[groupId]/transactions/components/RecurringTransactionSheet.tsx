@@ -22,14 +22,16 @@ export default function RecurringTransactionSheet({
       open={!!selectedTransaction}
       onOpenChange={() => setSelectedTransaction(null)}
     >
-      <SheetContent className="sm:max-w-md flex flex-col">
-        <SheetHeader className="px-6">
-          <SheetTitle>Recurring Transaction</SheetTitle>
+      <SheetContent className="flex flex-col">
+        <SheetHeader className="pr-12">
+          <SheetTitle className="text-xl font-bold">
+            Recurring Transaction Details
+          </SheetTitle>
         </SheetHeader>
 
         {selectedTransaction && (
           <div className="flex-1 overflow-y-auto px-6 pb-6">
-            <div className="mt-6 space-y-6">
+            <div className="space-y-6">
               {/* Amount Section */}
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Amount</p>
@@ -87,7 +89,7 @@ export default function RecurringTransactionSheet({
 
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Paid By</p>
-                  <p className="text-base">
+                  <p className="truncate text-base">
                     {selectedTransaction.groupMemberNickname}
                   </p>
                 </div>
@@ -99,13 +101,13 @@ export default function RecurringTransactionSheet({
                   <Separator />
                   <div>
                     <p className="text-sm font-semibold mb-3">Split Between</p>
-                    <div className="space-y-2">
+                    <div className="w-full flex flex-col gap-2 overflow-hidden">
                       {selectedTransaction.detailedExpenses.map((e) => (
                         <div
                           key={e.groupMemberId}
-                          className="flex justify-between py-2"
+                          className="flex flex-row justify-between py-2 gap-1"
                         >
-                          <span className="text-sm">
+                          <span className="truncate text-sm">
                             {e.groupMemberNickname}
                           </span>
                           <span className="text-sm font-medium">
@@ -129,7 +131,6 @@ export default function RecurringTransactionSheet({
                     { month: "short", day: "numeric", year: "numeric" },
                   )}
                 </p>
-                <p className="font-mono">{selectedTransaction.id}</p>
               </div>
             </div>
           </div>

@@ -22,9 +22,9 @@ export default function TransactionSheet({
       open={!!selectedTransaction}
       onOpenChange={() => setSelectedTransaction(null)}
     >
-      <SheetContent className="sm:max-w-md flex flex-col">
-        <SheetHeader className="px-6">
-          <SheetTitle className="text-2xl font-bold">
+      <SheetContent className="flex flex-col">
+        <SheetHeader className="pr-12">
+          <SheetTitle className="text-xl font-bold">
             Transaction Details
           </SheetTitle>
         </SheetHeader>
@@ -60,7 +60,7 @@ export default function TransactionSheet({
 
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Paid By</p>
-                  <p className="text-base">
+                  <p className="truncate text-base">
                     {selectedTransaction.groupMemberNickname}
                   </p>
                 </div>
@@ -78,7 +78,7 @@ export default function TransactionSheet({
                           key={e.groupMemberId}
                           className="flex justify-between py-2"
                         >
-                          <span className="text-sm">
+                          <span className="truncate text-sm">
                             {e.groupMemberNickname}
                           </span>
                           <span className="text-sm font-medium">
@@ -102,7 +102,6 @@ export default function TransactionSheet({
                     { month: "short", day: "numeric", year: "numeric" },
                   )}
                 </p>
-                <p className="font-mono">{selectedTransaction.id}</p>
               </div>
             </div>
           </div>

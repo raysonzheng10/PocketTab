@@ -26,9 +26,17 @@ type TransactionContextType = {
     title: string;
     amount: number;
     date: Date;
-    splits: Record<string, ExpenseSplit>;
+    splits: ExpenseSplit[];
   }) => Promise<boolean>;
   createTransactionLoading: boolean;
+  createReimbursement: (params: {
+    payerId: string;
+    recipientId: string;
+    title: string;
+    amount: number;
+    date: Date;
+  }) => Promise<boolean>;
+  createReimbursementLoading: boolean;
   error: string;
 };
 
@@ -45,6 +53,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const [transactionCursor, setTransactionCursor] = useState<string>("");
   const [hasMoreTransactions, setHasMoreTransactions] = useState<boolean>(true);
   const [isCreateTransactionLoading, setIsCreateTransactionLoading] =
+    useState<boolean>(false);
+  const [isCreateReimbursementLoading, setIsCreateReimbursementLoading] =
     useState<boolean>(false);
   const [error, setError] = useState("");
 
@@ -128,16 +138,16 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       title: string;
       amount: number;
       date: Date;
-      splits: Record<string, ExpenseSplit>;
+      splits: ExpenseSplit[];
     }) => {
       setIsCreateTransactionLoading(true);
       try {
-        const transformedSplits: CreateTransactionExpense[] = Object.entries(
-          splits,
-        ).map(([id, split]) => ({
-          groupMemberId: id,
-          amount: split.amount,
-        }));
+        const transformedSplits: CreateTransactionExpense[] = splits.map(
+          (split) => ({
+            groupMemberId: split.groupMemberId,
+            amount: split.amount,
+          }),
+        );
 
         const res = await fetch(`/api/protected/transaction/create`, {
           method: "POST",
@@ -173,6 +183,59 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     [resetTransactions, refreshSettlements],
   );
 
+  const createReimbursement = useCallback(
+    async ({
+      payerId,
+      recipientId,
+      title,
+      amount,
+      date,
+    }: {
+      payerId: string;
+      recipientId: string;
+      title: string;
+      amount: number;
+      date: Date;
+    }) => {
+      setIsCreateReimbursementLoading(true);
+      try {
+        const res = await fetch(
+          `/api/protected/transaction/reimbursement/create`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payerId,
+              recipientId,
+              title,
+              amount,
+              date,
+            }),
+          },
+        );
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to create transaction");
+
+        resetTransactions();
+        refreshSettlements();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      } finally {
+        setIsCreateReimbursementLoading(false);
+      }
+    },
+    [resetTransactions, refreshSettlements],
+  );
+
   return (
     <TransactionContext.Provider
       value={{
@@ -183,6 +246,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         hasMoreTransactions,
         createTransaction,
         createTransactionLoading: isCreateTransactionLoading,
+        createReimbursement,
+        createReimbursementLoading: isCreateReimbursementLoading,
         error,
       }}
     >

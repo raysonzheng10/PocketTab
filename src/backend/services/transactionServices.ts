@@ -23,6 +23,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
   date: Date,
   expenses: expense[],
   groupId: string,
+  isReimbursement?: boolean, // optional flag
 ) {
   const transaction = await tx.transaction.create({
     data: {
@@ -31,6 +32,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
       title,
       date,
       amount,
+      ...(isReimbursement !== undefined && { isReimbursement }),
     },
   });
 
@@ -44,7 +46,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
         },
       });
 
-      if (expense.groupMemberId != transactionOwnerId) {
+      if (expense.groupMemberId !== transactionOwnerId) {
         await tx.settlement.upsert({
           where: {
             payerId_recipientId: {
@@ -118,6 +120,38 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
     });
 
     return newTransaction;
+  });
+}
+
+export async function createReimbursement(
+  payerId: string,
+  recipientId: string,
+  amount: number,
+  date: Date,
+  title: string,
+) {
+  const groupId = await getGroupIdByGroupMemberId(payerId);
+  if (!groupId) throw new Error("payerId does not link to valid GroupId");
+
+  // ? Reimbursement = payer pays recipient → recipient receives the money
+  const expenses = [
+    {
+      groupMemberId: payerId,
+      amount,
+    },
+  ];
+
+  return prisma.$transaction(async (tx) => {
+    return createTransactionWithExpensesAndSettlementsInTx(
+      tx,
+      recipientId, // transaction owner (the one receiving reimbursement)
+      title,
+      amount,
+      date,
+      expenses,
+      groupId,
+      true, // isReimbursement flag
+    );
   });
 }
 

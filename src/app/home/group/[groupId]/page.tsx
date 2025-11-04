@@ -6,6 +6,7 @@ import GroupCard from "./components/dashboard/GroupCard";
 import CreateTransactionModal from "./components/CreateTransactionModal/CreateTransactionModal";
 import DashboardCard from "./components/dashboard/DashboardCard/DashboardCard";
 import ActionButtons from "./components/dashboard/ActionButtons";
+import CreateReimbursementModal from "./components/CreateReimbursementModal/CreateReimbursementModal";
 
 function PageContent() {
   const { setError } = useError();
@@ -17,6 +18,8 @@ function PageContent() {
 
   const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] =
     useState<boolean>(false);
+  const [isCreateReimbursementModalOpen, setIsCreateReimbursementModalOpen] =
+    useState<boolean>(false);
 
   return (
     <div className="h-full overflow-y-auto p-8">
@@ -25,6 +28,7 @@ function PageContent() {
 
         <ActionButtons
           onAddTransaction={() => setIsCreateTransactionModalOpen(true)}
+          onAddReimbursement={() => setIsCreateReimbursementModalOpen(true)}
         />
 
         <DashboardCard />
@@ -32,6 +36,10 @@ function PageContent() {
       <CreateTransactionModal
         open={isCreateTransactionModalOpen}
         onOpenChange={setIsCreateTransactionModalOpen}
+      />
+      <CreateReimbursementModal
+        open={isCreateReimbursementModalOpen}
+        onOpenChange={setIsCreateReimbursementModalOpen}
       />
     </div>
   );

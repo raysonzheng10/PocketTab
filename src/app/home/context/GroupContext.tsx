@@ -1,10 +1,5 @@
 "use client";
-import {
-  DetailedSettlements,
-  DetailedTransaction,
-  Group,
-  GroupMember,
-} from "@/types";
+import { Group, GroupMember } from "@/types";
 import { useParams } from "next/navigation";
 import {
   createContext,
@@ -21,21 +16,15 @@ type GroupContextType = {
   groupMembers: GroupMember[];
   groupLoading: boolean;
   refreshGroup: () => Promise<void>;
-  transactions: DetailedTransaction[];
-  transactionsLoading: boolean;
-  refreshTransactions: () => Promise<void>;
-  settlements: DetailedSettlements | null;
-  settlementsLoading: boolean;
-  refreshSettlements: () => Promise<void>;
+  groupId: string;
 };
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 export function GroupProvider({ children }: { children: ReactNode }) {
   const params = useParams();
-  const groupId = params.groupId as string; // must match folder name [group]
+  const groupId = params.groupId as string;
 
-  // ----- group data -----
   const [group, setGroup] = useState<Group | null>(null);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [error, setError] = useState("");
@@ -71,76 +60,6 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     fetchGroupWithGroupMembers();
   }, [groupId, fetchGroupWithGroupMembers]);
 
-  // ----- transactions data -----
-  const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
-  const [transactionsLoading, setTransactionsLoading] = useState(true);
-
-  const fetchTransactions = useCallback(async () => {
-    setTransactionsLoading(true);
-    try {
-      const res = await fetch(`/api/protected/transaction/${groupId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-
-      if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to fetch transactions");
-
-      setTransactions(data.transactions);
-      setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unknown error fetching transactions",
-      );
-      setTransactions([]);
-    } finally {
-      setTransactionsLoading(false);
-    }
-  }, [groupId]);
-
-  useEffect(() => {
-    if (!groupId) return;
-    fetchTransactions();
-  }, [groupId, fetchTransactions]);
-
-  // ----- settlements data -----
-  const [settlements, setSettlements] = useState<DetailedSettlements | null>(
-    null,
-  );
-  const [settlementsLoading, setSettlementsLoading] = useState(true);
-
-  const fetchSettlements = useCallback(async () => {
-    setSettlementsLoading(true);
-    try {
-      const res = await fetch(`/api/protected/settlement/${groupId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-
-      if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to fetch settlements");
-
-      setSettlements(data);
-      setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unknown error fetching settlements",
-      );
-      setSettlements(null);
-    } finally {
-      setSettlementsLoading(false);
-    }
-  }, [groupId]);
-
-  useEffect(() => {
-    if (!groupId) return;
-    fetchSettlements();
-  }, [groupId, fetchSettlements]);
-
   return (
     <GroupContext.Provider
       value={{
@@ -149,12 +68,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         groupLoading,
         error,
         refreshGroup: fetchGroupWithGroupMembers,
-        transactions,
-        transactionsLoading,
-        refreshTransactions: fetchTransactions,
-        settlements,
-        settlementsLoading,
-        refreshSettlements: fetchSettlements,
+        groupId,
       }}
     >
       {children}

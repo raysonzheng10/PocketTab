@@ -16,8 +16,23 @@ export async function POST(req: NextRequest) {
       amount,
       interval,
       startDate,
+      endDate,
       splits, // array of { groupMemberId, amount }
     } = await req.json();
+
+    if (
+      !transactionOwnerId ||
+      !title ||
+      !amount ||
+      !interval ||
+      !startDate ||
+      !splits
+    ) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
 
     const recurringTransaction =
       await createRecurringTransactionWithRecurringExpenses(
@@ -27,6 +42,7 @@ export async function POST(req: NextRequest) {
         interval,
         startDate,
         splits,
+        endDate ?? undefined,
       );
 
     return NextResponse.json({ transaction: recurringTransaction });

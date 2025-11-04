@@ -26,20 +26,10 @@ export default function HomeLayout({
 }
 
 function HomeLayoutContent({ children }: { children: ReactNode }) {
-  const { error, setError, clearError } = useError();
+  const { setError } = useError();
   const { error: userError } = useUser();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const getMobileTitle = () => {
-    if (pathname.endsWith("/home")) return "Manage Groups";
-    if (pathname.endsWith("/account")) return "Account Settings";
-    if (pathname.endsWith("/settings")) return "Group Settings";
-    if (pathname.endsWith("/transactions")) return "Transactions";
-    if (pathname.endsWith("/settlements")) return "Settlements";
-    if (pathname.endsWith("/members")) return "Members";
-    return "Dashboard";
-  };
 
   const isGroupPage = pathname.startsWith("/home/group");
 
@@ -54,11 +44,10 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <ErrorAlert error={error} onDismiss={clearError} />
+      <ErrorAlert />
 
       {/* Mobile header is z-40 */}
       <MobileHeader
-        title={getMobileTitle()}
         onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 
@@ -94,7 +83,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 pt-14 lg:pt-0">{children}</main>
+      <main className="flex-1 pt-14 lg:pt-0 overflow-hidden">{children}</main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
+import { getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
 
 type expense = {
   groupMemberId: string;
@@ -16,10 +17,10 @@ export function getNextOccurrence(interval: string, startDate: Date): Date {
     case "weekly":
       next.setDate(next.getDate() + 7);
       break;
+    case "monthly":
+      next.setMonth(next.getMonth() + 1);
+      break;
     // TODO: implement monthly/other intervals
-    // case "monthly":
-    //   next.setMonth(next.getMonth() + 1);
-    //   break;
     // case "yearly":
     //   next.setFullYear(next.getFullYear() + 1);
     //   break;
@@ -72,4 +73,41 @@ export async function createRecurringTransactionWithRecurringExpenses(
 
     return recurringTransaction;
   });
+}
+
+export async function getDetailedRecurringTransactionsByGroupIdPaginated(
+  groupId: string,
+  limit: number,
+  cursor?: string,
+) {
+  const {
+    recurringTransactionsWithGroupMemberAndRecurringExpenses,
+    nextCursor,
+  } =
+    await getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
+      groupId,
+      limit,
+      cursor,
+    );
+
+  const detailedRecurringTransactions =
+    recurringTransactionsWithGroupMemberAndRecurringExpenses.map((t) => ({
+      id: t.id,
+      createdAt: t.createdAt,
+      title: t.title,
+      amount: t.amount,
+      interval: t.interval,
+      startDate: t.startDate,
+      endDate: t.endDate,
+      nextOccurence: t.nextOccurrence,
+      groupMemberId: t.groupMemberId,
+      groupMemberNickname: t.groupMember.nickname,
+      detailedExpenses: t.recurringExpenses.map((e) => ({
+        groupMemberId: e.groupMemberId,
+        groupMemberNickname: e.groupMember.nickname,
+        amount: e.amount,
+      })),
+    }));
+
+  return { detailedRecurringTransactions, nextCursor };
 }

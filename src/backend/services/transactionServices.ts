@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { getRecurringTransactionWithRecurringExpensesById } from "../repositories/recurringTransactionRepo";
 import {
   getTransactionsWithGroupMemberByGroupId,
+  getTransactionsWithGroupMemberAndExpensesByGroupIdPaginated,
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
@@ -19,6 +20,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
   transactionOwnerId: string,
   title: string,
   amount: number,
+  date: Date,
   expenses: expense[],
   groupId: string,
 ) {
@@ -27,6 +29,7 @@ async function createTransactionWithExpensesAndSettlementsInTx(
       groupId,
       groupMemberId: transactionOwnerId,
       title,
+      date,
       amount,
     },
   });
@@ -95,6 +98,7 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
         recurringTransaction.groupMemberId,
         recurringTransaction.title,
         recurringTransaction.amount.toNumber(),
+        recurringTransaction.nextOccurrence,
         recurringExpenses.map((expense) => ({
           groupMemberId: expense.groupMemberId,
           amount: expense.amount.toNumber(),
@@ -121,6 +125,7 @@ export async function createTransactionWithExpensesAndSettlements(
   transactionOwnerId: string,
   title: string,
   amount: number,
+  date: Date,
   expenses: expense[],
 ) {
   const groupId = await getGroupIdByGroupMemberId(transactionOwnerId);
@@ -133,6 +138,7 @@ export async function createTransactionWithExpensesAndSettlements(
       transactionOwnerId,
       title,
       amount,
+      date,
       expenses,
       groupId,
     );
@@ -150,18 +156,34 @@ export async function getTransactionsByGroupMemberId(
   return transactions;
 }
 
-export async function getDetailedTransactionsByGroupId(groupId: string) {
-  const transactionsWithGroupMember =
-    await getTransactionsWithGroupMemberByGroupId(groupId);
+export async function getDetailedTransactionsByGroupIdPaginated(
+  groupId: string,
+  limit: number,
+  cursor?: string,
+) {
+  const { transactionsWithGroupMemberAndExpenses, nextCursor } =
+    await getTransactionsWithGroupMemberAndExpensesByGroupIdPaginated(
+      groupId,
+      limit,
+      cursor,
+    );
 
-  const detailedTransactions = transactionsWithGroupMember.map((t) => ({
-    id: t.id,
-    createdAt: t.createdAt,
-    amount: t.amount,
-    title: t.title,
-    groupMemberId: t.groupMemberId,
-    groupMemberNickname: t.groupMember.nickname,
-  }));
+  const detailedTransactions = transactionsWithGroupMemberAndExpenses.map(
+    (t) => ({
+      id: t.id,
+      createdAt: t.createdAt,
+      amount: t.amount,
+      title: t.title,
+      date: t.date,
+      groupMemberId: t.groupMemberId,
+      groupMemberNickname: t.groupMember.nickname,
+      detailedExpenses: t.expenses.map((e) => ({
+        groupMemberId: e.groupMemberId,
+        groupMemberNickname: e.groupMember.nickname,
+        amount: e.amount,
+      })),
+    }),
+  );
 
-  return detailedTransactions;
+  return { detailedTransactions, nextCursor };
 }

@@ -50,6 +50,7 @@ export default function CreateReimbursementModal({
   const { settlements } = useSettlements();
   const { setError } = useError();
 
+  console.log(settlements);
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
@@ -59,7 +60,8 @@ export default function CreateReimbursementModal({
     useState<boolean>(false);
 
   // can only reimburse people who the user owes money to
-  const debtSettlements = settlements?.filter(({ amount }) => amount < 0) ?? [];
+  const debtSettlements =
+    settlements?.filter(({ amount }) => amount <= -0.01) ?? [];
 
   const handleSelectSettlement = (settlement: DetailedSettlement) => {
     setRecipientSettlement(settlement);
@@ -125,7 +127,8 @@ export default function CreateReimbursementModal({
 
         {debtSettlements.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            You dont owe anyone money. Nothing to settle up!
+            No valid reimbursements to create because you do not owe anyone else
+            money.
           </div>
         ) : (
           <div className="flex flex-col gap-6 overflow-hidden">

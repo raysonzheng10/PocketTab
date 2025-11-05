@@ -23,8 +23,8 @@ export default function SettlementDetails() {
   const { owedToYou, youOwe } = useMemo(() => {
     if (!settlements) return { owedToYou: 0, youOwe: 0 };
 
-    const owedToYou = settlements.filter(({ amount }) => amount > 0).length;
-    const youOwe = settlements.filter(({ amount }) => amount < 0).length;
+    const owedToYou = settlements.filter(({ amount }) => amount >= 0.01).length;
+    const youOwe = settlements.filter(({ amount }) => amount <= -0.01).length;
 
     return { owedToYou, youOwe };
   }, [settlements]);

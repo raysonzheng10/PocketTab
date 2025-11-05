@@ -43,7 +43,7 @@ export async function getDetailedSettlementsByGroupMemberId(
   // Convert to array with id included
   const settlements = Object.entries(settlementsMap).map(
     ([id, { nickname, amount }]) => ({
-      id,
+      groupMemberId: id,
       nickname,
       amount,
     }),

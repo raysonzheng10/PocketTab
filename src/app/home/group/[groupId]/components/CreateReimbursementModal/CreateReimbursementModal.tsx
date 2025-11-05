@@ -7,7 +7,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { Separator } from "@/components/ui/separator";
 import { useError } from "@/app/home/context/ErrorContext";
 import { useTransactions } from "../../context/TransactionContext";
 import { useSettlements } from "../../context/SettlementContext";
@@ -19,9 +18,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronsUpDown,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { DetailedSettlement } from "@/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface CreateReimbursementModalProps {
   open: boolean;
@@ -35,46 +48,61 @@ export default function CreateReimbursementModal({
   const { userGroupMemberId } = useGroup();
   const { createReimbursement, createReimbursementLoading } = useTransactions();
   const { settlements } = useSettlements();
-
   const { setError } = useError();
 
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
-  const [recipientId, setRecipientId] = useState<string>("");
+  const [recipientSettlement, setRecipientSettlement] =
+    useState<DetailedSettlement | null>(null);
   const [isSelectRecipientPopoverOpen, setIsSelectRecipientPopoverOpen] =
     useState<boolean>(false);
 
+  // can only reimburse people who the user owes money to
   const debtSettlements = settlements?.filter(({ amount }) => amount < 0) ?? [];
 
-  console.log("debt", debtSettlements);
+  const handleSelectSettlement = (settlement: DetailedSettlement) => {
+    setRecipientSettlement(settlement);
+    setAmount(Math.abs(settlement.amount));
+    setTitle(`Reimbursement to ${settlement.nickname}`);
+  };
+
   const handleCloseModal = () => {
     setTitle("");
     setAmount(0);
     setDate(new Date());
-    setRecipientId("");
+    setRecipientSettlement(null);
     onOpenChange(false);
   };
 
   const handleCreateReimbursement = async () => {
     if (!title) {
       setError("Title cannot be empty");
+      return;
     } else if (!userGroupMemberId) {
       setError("Invalid user");
+      return;
     } else if (amount <= 0) {
       setError("Amount must be greater than 0");
+      return;
+    } else if (!recipientSettlement) {
+      setError("Please select a recipient");
+      return;
+    } else if (amount + recipientSettlement.amount > 0.01) {
+      setError("Cannot reimburse more than what you owe");
+      return;
     }
 
     const reimbursementSuccess = await createReimbursement({
-      payerId: userGroupMemberId,
-      recipientId,
+      reimbursementCreatorId: userGroupMemberId,
+      recipientId: recipientSettlement.groupMemberId,
       title,
       amount,
       date,
     });
 
     if (!reimbursementSuccess) {
-      setError("Failed to create the transaction.");
+      setError("Failed to create the reimbursement.");
       return;
     }
 
@@ -92,84 +120,127 @@ export default function CreateReimbursementModal({
     >
       <DialogContent className="max-h-2/3 overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Settle Up</DialogTitle>
+          <DialogTitle className="text-xl">Record Reimbursement</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-hidden">
-          {/* <FormField title="Who are you settling up with?">
-            <Select value={recipientId} onValueChange={setRecipientId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a person" />
-              </SelectTrigger>
-              <SelectContent>
-                {otherMembers.map((member) => {
-                  const settlement = settlements?.settlements?.[member.id];
-                  const balance = settlement?.amount || 0;
-                  const balanceText =
-                    balance !== 0
-                      ? ` (${balance > 0 ? `owes you $${balance.toFixed(2)}` : `you owe $${Math.abs(balance).toFixed(2)}`})`
-                      : "";
+        {debtSettlements.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            You dont owe anyone money. Nothing to settle up!
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6 overflow-hidden">
+            <FormField title="Select who to reimburse">
+              <Popover
+                open={isSelectRecipientPopoverOpen}
+                onOpenChange={setIsSelectRecipientPopoverOpen}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-between font-normal"
+                  >
+                    <span className="truncate mr-1">
+                      {recipientSettlement
+                        ? recipientSettlement.nickname
+                        : "Select member..."}
+                    </span>
+                    <ChevronsUpDown className="size-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty className="w-full">
+                        No member found.
+                      </CommandEmpty>
+                      <CommandGroup className="w-full">
+                        {debtSettlements.map((settlement) => {
+                          return (
+                            <CommandItem
+                              key={settlement.groupMemberId}
+                              value={settlement.nickname}
+                              onSelect={() => {
+                                handleSelectSettlement(settlement);
+                                setIsSelectRecipientPopoverOpen(false);
+                              }}
+                              className="w-full"
+                            >
+                              <Check
+                                className={`size-4 ${recipientSettlement?.groupMemberId !== settlement.groupMemberId && "opacity-0"}`}
+                              />
+                              <span className="truncate">
+                                {settlement.nickname}
+                              </span>
+                              <span className="ml-auto text-xs text-muted-foreground">
+                                ${Math.abs(settlement.amount).toFixed(2)}
+                              </span>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </FormField>
 
-                  return (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.nickname}
-                      {balanceText && (
-                        <span className="text-xs text-muted-foreground ml-1">
-                          {balanceText}
-                        </span>
-                      )}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </FormField> */}
+            {recipientSettlement && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField title="Title">
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Reimbursement Title"
+                    />
+                  </FormField>
 
-          <FormField title="Amount">
-            <AmountInput setAmount={setAmount} />
-          </FormField>
+                  <FormField title="Amount">
+                    <AmountInput amount={amount} setAmount={setAmount} />
+                  </FormField>
 
-          <FormField title="Description (optional)">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Venmo payment, cash"
-            />
-          </FormField>
-
-          <Separator />
-
-          <FormField title="Date">
-            <Popover>
-              <PopoverTrigger asChild>
+                  <FormField title="Date">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 size-4" />
+                          {date ? format(date, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 max-w-[min(400px,calc(100vw-2rem))]">
+                        <Calendar
+                          mode="single"
+                          required={true}
+                          selected={date}
+                          onSelect={(d) => d && setDate(d)}
+                          className="scale-90 sm:scale-100"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormField>
+                </div>
+                {amount < Math.abs(recipientSettlement.amount) && (
+                  <Alert variant="warning">
+                    <AlertCircle className="size-4" />
+                    <AlertDescription>
+                      {`This is only a partial reimbursement. To fully reimburse, change the amount to $${Math.abs(recipientSettlement.amount).toFixed(2)}`}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button
-                  variant="outline"
-                  className="justify-start text-left font-normal"
+                  disabled={createReimbursementLoading || !recipientSettlement}
+                  loading={createReimbursementLoading}
+                  onClick={handleCreateReimbursement}
                 >
-                  <CalendarIcon className="mr-2 size-4" />
-                  {date ? format(date, "PPP") : "Pick a date"}
+                  Create Reimbursement
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 max-w-[min(400px,calc(100vw-2rem))]">
-                <Calendar
-                  mode="single"
-                  required={true}
-                  selected={date}
-                  onSelect={(d) => d && setDate(d)}
-                  className="scale-90 sm:scale-100"
-                />
-              </PopoverContent>
-            </Popover>
-          </FormField>
-
-          <Button
-            disabled={createReimbursementLoading}
-            loading={createReimbursementLoading}
-            onClick={handleCreateReimbursement}
-          >
-            Settle Up
-          </Button>
-        </div>
+              </>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

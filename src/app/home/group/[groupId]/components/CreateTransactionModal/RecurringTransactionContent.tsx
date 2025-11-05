@@ -26,6 +26,7 @@ import { capitalizeFirst } from "@/app/utils/utils";
 interface OneTimeTransactionContentProps {
   title: string;
   setTitle: (title: string) => void;
+  amount: number;
   setAmount: (amount: number) => void;
   date: Date;
   setDate: (date: Date) => void;
@@ -42,6 +43,7 @@ const intervals = ["daily", "weekly", "monthly"];
 export default function RecurringTransactionContent({
   title,
   setTitle,
+  amount,
   setAmount,
   date,
   setDate,
@@ -71,7 +73,7 @@ export default function RecurringTransactionContent({
       </FormField>
 
       <FormField title="Amount">
-        <AmountInput setAmount={setAmount} />
+        <AmountInput amount={amount} setAmount={setAmount} />
       </FormField>
 
       <FormField title="Paid By">

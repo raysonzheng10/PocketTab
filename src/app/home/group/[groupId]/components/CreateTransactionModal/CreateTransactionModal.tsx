@@ -155,6 +155,7 @@ export default function CreateTransactionModal({
           <OneTimeTransactionContent
             title={title}
             setTitle={setTitle}
+            amount={amount}
             setAmount={setAmount}
             date={date}
             setDate={setDate}
@@ -164,6 +165,7 @@ export default function CreateTransactionModal({
           <RecurringTransactionContent
             title={title}
             setTitle={setTitle}
+            amount={amount}
             setAmount={setAmount}
             date={date}
             setDate={setDate}
@@ -195,7 +197,7 @@ export default function CreateTransactionModal({
             }
             onClick={handleCreateTransaction}
           >
-            Create
+            Create Transaction
           </Button>
         </div>
       </DialogContent>

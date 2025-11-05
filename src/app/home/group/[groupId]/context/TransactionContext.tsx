@@ -30,7 +30,7 @@ type TransactionContextType = {
   }) => Promise<boolean>;
   createTransactionLoading: boolean;
   createReimbursement: (params: {
-    payerId: string;
+    reimbursementCreatorId: string;
     recipientId: string;
     title: string;
     amount: number;
@@ -185,13 +185,13 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const createReimbursement = useCallback(
     async ({
-      payerId,
+      reimbursementCreatorId,
       recipientId,
       title,
       amount,
       date,
     }: {
-      payerId: string;
+      reimbursementCreatorId: string;
       recipientId: string;
       title: string;
       amount: number;
@@ -205,7 +205,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              payerId,
+              reimbursementCreatorId,
               recipientId,
               title,
               amount,

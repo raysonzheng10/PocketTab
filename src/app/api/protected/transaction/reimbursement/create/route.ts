@@ -10,9 +10,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
 
-    const { payerId, title, amount, date, recipientId } = await req.json();
+    const { reimbursementCreatorId, title, amount, date, recipientId } =
+      await req.json();
 
-    if (!payerId || !title || !amount || !date || !recipientId) {
+    if (!reimbursementCreatorId || !title || !amount || !date || !recipientId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const transaction = await createReimbursement(
-      payerId,
+      reimbursementCreatorId,
       recipientId,
       amount,
       date,

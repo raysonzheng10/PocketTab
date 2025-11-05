@@ -9,28 +9,22 @@ import { useSettlements } from "../../../context/SettlementContext";
 export default function SettlementDetails() {
   const router = useRouter();
   const { groupId } = useGroup();
-  const { settlements } = useSettlements();
+  const { settlements, settlementTotal } = useSettlements();
 
   const handleNavigateSettlements = () => {
     if (!groupId) return;
     router.push(`/home/group/${groupId}/settlements`);
   };
 
-  const total = settlements?.total ?? 0;
-  const isSettled = total === 0;
-  const positive = total > 0;
-  const formattedTotal = Math.abs(total).toFixed(2);
+  const isSettled = settlementTotal === 0;
+  const positive = settlementTotal > 0;
+  const formattedTotal = Math.abs(settlementTotal).toFixed(2);
 
   const { owedToYou, youOwe } = useMemo(() => {
     if (!settlements) return { owedToYou: 0, youOwe: 0 };
 
-    const owedToYou = Object.entries(settlements.settlements).filter(
-      ([, { amount }]) => amount > 0,
-    ).length;
-
-    const youOwe = Object.entries(settlements.settlements).filter(
-      ([, { amount }]) => amount < 0,
-    ).length;
+    const owedToYou = settlements.filter(({ amount }) => amount > 0).length;
+    const youOwe = settlements.filter(({ amount }) => amount < 0).length;
 
     return { owedToYou, youOwe };
   }, [settlements]);

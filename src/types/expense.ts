@@ -3,3 +3,14 @@ export interface ExpenseSplit {
   percentage: number;
   amount: number;
 }
+
+export interface DetailedExpense {
+  groupMemberId: string;
+  groupMemberNickname: string;
+  amount: number;
+}
+
+export interface CreateTransactionExpense {
+  groupMemberId: string;
+  amount: number;
+}

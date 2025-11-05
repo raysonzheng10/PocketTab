@@ -5,6 +5,7 @@ import {
   checkUserIsInGroup,
   getGroupWithGroupMembersByGroupId,
 } from "@/backend/services/groupServices";
+import { GroupMember } from "@/types";
 
 export async function GET(
   req: NextRequest,
@@ -26,9 +27,18 @@ export async function GET(
 
     const groupWithGroupMembers =
       await getGroupWithGroupMembersByGroupId(groupId);
+
+    const sanitizedGroupMembers: GroupMember[] =
+      groupWithGroupMembers.groupMembers.map((m) => ({
+        id: m.id,
+        createdAt: m.createdAt,
+        nickname: m.nickname,
+        userId: m.userId,
+      }));
+
     return NextResponse.json({
       group: groupWithGroupMembers.group,
-      groupMembers: groupWithGroupMembers.groupMembers,
+      groupMembers: sanitizedGroupMembers,
     });
   } catch (err: unknown) {
     console.error("Error in POST /group/[groupId]:", err);

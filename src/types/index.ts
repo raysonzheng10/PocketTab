@@ -4,3 +4,4 @@ export * from "./groupMember";
 export * from "./transaction";
 export * from "./expense";
 export * from "./recurringTransaction";
+export * from "./settlement";

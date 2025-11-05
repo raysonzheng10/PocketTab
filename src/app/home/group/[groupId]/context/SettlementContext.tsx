@@ -1,6 +1,6 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { DetailedSettlements } from "@/types";
+import { DetailedSettlement } from "@/types";
 import {
   createContext,
   useContext,
@@ -11,7 +11,8 @@ import {
 } from "react";
 
 type SettlementContextType = {
-  settlements: DetailedSettlements | null;
+  settlements: DetailedSettlement[];
+  settlementTotal: number;
   settlementsLoading: boolean;
   refreshSettlements: () => Promise<void>;
   error: string;
@@ -24,9 +25,8 @@ const SettlementContext = createContext<SettlementContextType | undefined>(
 export function SettlementProvider({ children }: { children: ReactNode }) {
   const { groupId } = useGroup();
 
-  const [settlements, setSettlements] = useState<DetailedSettlements | null>(
-    null,
-  );
+  const [settlements, setSettlements] = useState<DetailedSettlement[]>([]);
+  const [settlementTotal, setSettlementTotal] = useState<number>(0);
   const [settlementsLoading, setSettlementsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,7 +41,8 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch settlements");
 
-      setSettlements(data);
+      setSettlements(data.settlements);
+      setSettlementTotal(data.total);
       setError("");
     } catch (err: unknown) {
       setError(
@@ -49,7 +50,8 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
           ? err.message
           : "Unknown error fetching settlements",
       );
-      setSettlements(null);
+      setSettlements([]);
+      setSettlementTotal(0);
     } finally {
       setSettlementsLoading(false);
     }
@@ -64,6 +66,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     <SettlementContext.Provider
       value={{
         settlements,
+        settlementTotal,
         settlementsLoading,
         refreshSettlements: fetchSettlements,
         error,

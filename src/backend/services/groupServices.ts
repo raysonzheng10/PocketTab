@@ -1,4 +1,4 @@
-import { Group, GroupMember } from "@/types";
+import { Group } from "@/types";
 import { prisma } from "../db";
 import {
   getGroupMemberByUserIdAndGroupId,
@@ -10,13 +10,7 @@ import { getUserById } from "../repositories/userRepo";
 
 export async function getGroupWithGroupMembersByGroupId(groupId: string) {
   const group = await getGroupById(groupId);
-  const rawGroupMembers = await getGroupMembersByGroupId(groupId);
-
-  const groupMembers: GroupMember[] = rawGroupMembers.map((gm) => ({
-    id: gm.id,
-    createdAt: gm.createdAt,
-    nickname: gm.nickname,
-  }));
+  const groupMembers = await getGroupMembersByGroupId(groupId);
 
   return { group: group, groupMembers: groupMembers };
 }

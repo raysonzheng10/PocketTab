@@ -32,7 +32,7 @@ export default function CreateReimbursementModal({
   open,
   onOpenChange,
 }: CreateReimbursementModalProps) {
-  const { groupMembers } = useGroup();
+  const { userGroupMemberId } = useGroup();
   const { createReimbursement, createReimbursementLoading } = useTransactions();
   const { settlements } = useSettlements();
 
@@ -41,14 +41,17 @@ export default function CreateReimbursementModal({
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
-  const [payerId, setPayerId] = useState<string>("");
   const [recipientId, setRecipientId] = useState<string>("");
+  const [isSelectRecipientPopoverOpen, setIsSelectRecipientPopoverOpen] =
+    useState<boolean>(false);
 
+  const debtSettlements = settlements?.filter(({ amount }) => amount < 0) ?? [];
+
+  console.log("debt", debtSettlements);
   const handleCloseModal = () => {
     setTitle("");
     setAmount(0);
     setDate(new Date());
-    setPayerId("");
     setRecipientId("");
     onOpenChange(false);
   };
@@ -56,12 +59,14 @@ export default function CreateReimbursementModal({
   const handleCreateReimbursement = async () => {
     if (!title) {
       setError("Title cannot be empty");
-    } else if (!payerId) {
-      setError("Paid By cannot be empty");
+    } else if (!userGroupMemberId) {
+      setError("Invalid user");
+    } else if (amount <= 0) {
+      setError("Amount must be greater than 0");
     }
 
     const reimbursementSuccess = await createReimbursement({
-      payerId,
+      payerId: userGroupMemberId,
       recipientId,
       title,
       amount,
@@ -85,24 +90,55 @@ export default function CreateReimbursementModal({
         }
       }}
     >
-      <DialogContent className="max-h-2/3 overflow-y-auto ">
+      <DialogContent className="max-h-2/3 overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Create Reimbursement</DialogTitle>
+          <DialogTitle className="text-xl">Settle Up</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-8 overflow-hidden">
-          <FormField title="Title">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Transaction title"
-            />
-          </FormField>
+        <div className="flex flex-col gap-6 overflow-hidden">
+          {/* <FormField title="Who are you settling up with?">
+            <Select value={recipientId} onValueChange={setRecipientId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a person" />
+              </SelectTrigger>
+              <SelectContent>
+                {otherMembers.map((member) => {
+                  const settlement = settlements?.settlements?.[member.id];
+                  const balance = settlement?.amount || 0;
+                  const balanceText =
+                    balance !== 0
+                      ? ` (${balance > 0 ? `owes you $${balance.toFixed(2)}` : `you owe $${Math.abs(balance).toFixed(2)}`})`
+                      : "";
+
+                  return (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.nickname}
+                      {balanceText && (
+                        <span className="text-xs text-muted-foreground ml-1">
+                          {balanceText}
+                        </span>
+                      )}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </FormField> */}
 
           <FormField title="Amount">
             <AmountInput setAmount={setAmount} />
           </FormField>
+
+          <FormField title="Description (optional)">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Venmo payment, cash"
+            />
+          </FormField>
+
           <Separator />
+
           <FormField title="Date">
             <Popover>
               <PopoverTrigger asChild>
@@ -119,18 +155,19 @@ export default function CreateReimbursementModal({
                   mode="single"
                   required={true}
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={(d) => d && setDate(d)}
                   className="scale-90 sm:scale-100"
                 />
               </PopoverContent>
             </Popover>
           </FormField>
+
           <Button
             disabled={createReimbursementLoading}
             loading={createReimbursementLoading}
             onClick={handleCreateReimbursement}
           >
-            Create
+            Settle Up
           </Button>
         </div>
       </DialogContent>

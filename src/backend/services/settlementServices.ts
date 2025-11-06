@@ -9,26 +9,21 @@ type MemberSettlement = {
   amount: Decimal;
 };
 
-type DetailedSettlements = {
-  settlements: Record<string, MemberSettlement>;
-  total: Decimal;
-};
-
 export async function getDetailedSettlementsByGroupMemberId(
   groupMemberId: string,
-): Promise<DetailedSettlements> {
+) {
   const outgoingSettlements =
     await getAllOutgoingSettlementsByGroupMemberId(groupMemberId);
   const incomingSettlements =
     await getAllIncomingSettlementsByGroupMemberId(groupMemberId);
 
-  const settlements: Record<string, MemberSettlement> = {};
+  const settlementsMap: Record<string, MemberSettlement> = {};
 
   // Others paid you → positive balance
   for (const { payer, amount } of incomingSettlements) {
     const id = payer.id;
     const nickname = payer.nickname;
-    settlements[id] = {
+    settlementsMap[id] = {
       nickname,
       amount,
     };
@@ -38,18 +33,21 @@ export async function getDetailedSettlementsByGroupMemberId(
   for (const { recipient, amount } of outgoingSettlements) {
     const id = recipient.id;
     const nickname = recipient.nickname;
-    const existing = settlements[id];
-    settlements[id] = {
+    const existing = settlementsMap[id];
+    settlementsMap[id] = {
       nickname,
       amount: (existing?.amount ?? new Decimal(0)).minus(amount),
     };
   }
 
-  // Compute total sum across all settlements
-  const total = Object.values(settlements).reduce(
-    (acc, { amount }) => acc.plus(amount),
-    new Decimal(0),
+  // Convert to array with id included
+  const settlements = Object.entries(settlementsMap).map(
+    ([id, { nickname, amount }]) => ({
+      groupMemberId: id,
+      nickname,
+      amount,
+    }),
   );
 
-  return { settlements, total };
+  return settlements;
 }

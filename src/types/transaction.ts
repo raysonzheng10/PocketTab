@@ -1,3 +1,5 @@
+import { DetailedExpense } from ".";
+
 export interface DetailedTransaction {
   id: string;
   createdAt: Date;
@@ -7,19 +9,4 @@ export interface DetailedTransaction {
   groupMemberId: string;
   groupMemberNickname: string;
   detailedExpenses: DetailedExpense[];
-}
-
-export interface DetailedExpense {
-  groupMemberId: string;
-  groupMemberNickname: string;
-  amount: number;
-}
-export interface CreateTransactionExpense {
-  groupMemberId: string;
-  amount: number;
-}
-
-export interface DetailedSettlements {
-  settlements: Record<string, { nickname: string; amount: number }>;
-  total: number;
 }

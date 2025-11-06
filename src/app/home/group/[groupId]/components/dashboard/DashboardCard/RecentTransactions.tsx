@@ -3,19 +3,18 @@
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { useTransactions } from "../../context/TransactionContext";
+import { useMemo, useState } from "react";
+import { useTransactions } from "../../../context/TransactionContext";
+import TransactionSheet from "../../../transactions/components/TransactionSheet";
+import { DetailedTransaction } from "@/types";
 
-interface RecentTransactionsProps {
-  onCreateTransaction: () => void;
-}
-
-export default function RecentTransactions({
-  onCreateTransaction,
-}: RecentTransactionsProps) {
+export default function RecentTransactions() {
   const router = useRouter();
   const { groupId } = useGroup();
   const { transactions } = useTransactions();
+
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<DetailedTransaction | null>(null);
 
   const recentTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -30,10 +29,18 @@ export default function RecentTransactions({
   return (
     <div>
       <div className="flex flex-row justify-between items-center py-3 mb-4">
-        <h3 className="text-xl font-semibold">Recent Transactions</h3>
-        <Button variant="outline" onClick={onCreateTransaction}>
-          Create Transaction
-        </Button>
+        <h3 className="text-lg sm:text-xl font-semibold truncate">
+          Recent Transactions
+        </h3>
+        {recentTransactions.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNavigateTransactions}
+          >
+            All Transactions
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -43,7 +50,8 @@ export default function RecentTransactions({
           recentTransactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+              className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedTransaction(transaction)}
             >
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-semibold">{transaction.title}</h4>
@@ -71,15 +79,11 @@ export default function RecentTransactions({
           ))
         )}
       </div>
-      {recentTransactions.length > 0 && (
-        <Button
-          variant="ghost"
-          className="w-full mt-3"
-          onClick={handleNavigateTransactions}
-        >
-          See All Transactions
-        </Button>
-      )}
+
+      <TransactionSheet
+        selectedTransaction={selectedTransaction}
+        setSelectedTransaction={setSelectedTransaction}
+      />
     </div>
   );
 }

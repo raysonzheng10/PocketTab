@@ -27,19 +27,20 @@ export async function GET(
       );
     }
 
-    const detailedSettlementsDecimal =
-      await getDetailedSettlementsByGroupMemberId(groupMember.id);
+    const detailedSettlements = await getDetailedSettlementsByGroupMemberId(
+      groupMember.id,
+    );
 
     // Convert all Decimal values to numbers for JSON
-    const settlements = Object.fromEntries(
-      Object.entries(detailedSettlementsDecimal.settlements).map(
-        ([id, { nickname, amount }]) => [
-          id,
-          { nickname, amount: amount.toNumber() },
-        ],
-      ),
+    const settlements = detailedSettlements.map(
+      ({ groupMemberId, nickname, amount }) => ({
+        groupMemberId,
+        nickname,
+        amount: amount.toNumber(),
+      }),
     );
-    const total = detailedSettlementsDecimal.total.toNumber();
+
+    const total = settlements.reduce((acc, { amount }) => acc + amount, 0);
 
     return NextResponse.json({ settlements, total });
   } catch (err: unknown) {

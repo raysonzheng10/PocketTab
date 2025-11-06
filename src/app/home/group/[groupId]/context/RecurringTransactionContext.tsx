@@ -30,7 +30,7 @@ type RecurringTransactionContextType = {
     interval: string;
     startDate: Date;
     endDate?: Date;
-    splits: Record<string, ExpenseSplit>;
+    splits: ExpenseSplit[];
   }) => Promise<boolean>;
   createRecurringTransactionLoading: boolean;
   error: string;
@@ -158,16 +158,16 @@ export function RecurringTransactionProvider({
       interval: string;
       startDate: Date;
       endDate?: Date;
-      splits: Record<string, ExpenseSplit>;
+      splits: ExpenseSplit[];
     }) => {
       setIsCreateRecurringTransactionLoading(true);
       try {
-        const transformedSplits: CreateTransactionExpense[] = Object.entries(
-          splits,
-        ).map(([id, split]) => ({
-          groupMemberId: id,
-          amount: split.amount,
-        }));
+        const transformedSplits: CreateTransactionExpense[] = splits.map(
+          (split) => ({
+            groupMemberId: split.groupMemberId,
+            amount: split.amount,
+          }),
+        );
 
         const res = await fetch(`/api/protected/recurringTransaction/create`, {
           method: "POST",

@@ -1,12 +1,23 @@
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AmountInput({
+  amount,
   setAmount,
 }: {
+  amount: number;
   setAmount: (amount: number) => void;
 }) {
   const [inputValue, setInputValue] = useState<string>("");
+
+  // Sync input value when amount prop changes
+  useEffect(() => {
+    if (amount > 0) {
+      setInputValue(amount.toFixed(2));
+    } else {
+      setInputValue("");
+    }
+  }, [amount]);
 
   const handleInputChange = (input: string) => {
     const cleaned = input.replace(/[^\d.]/g, "");

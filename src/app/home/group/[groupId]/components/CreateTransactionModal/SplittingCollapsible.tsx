@@ -15,8 +15,8 @@ import { ExpenseSplit } from "@/types";
 interface SplitOptionsCollapsibleProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  splits: Record<string, ExpenseSplit>;
-  setSplits: (splits: Record<string, ExpenseSplit>) => void;
+  splits: ExpenseSplit[];
+  setSplits: (splits: ExpenseSplit[]) => void;
   transactionTotal: number;
 }
 
@@ -39,14 +39,11 @@ export default function SplittingCollapsible({
     (activeMembers: string[]) => {
       const equalShare =
         activeMembers.length > 0 ? 100 / activeMembers.length : 0;
-      const splitObj: Record<string, ExpenseSplit> = {};
-      activeMembers.forEach((id) => {
-        splitObj[id] = {
-          percentage: equalShare,
-          amount: (equalShare / 100) * transactionTotal,
-        };
-      });
-      return splitObj;
+      return activeMembers.map((id) => ({
+        groupMemberId: id,
+        percentage: equalShare,
+        amount: (equalShare / 100) * transactionTotal,
+      }));
     },
     [transactionTotal],
   );
@@ -55,13 +52,10 @@ export default function SplittingCollapsible({
     if (!isModified) {
       setSplits(autoEvenSplit(activeMembers));
     } else {
-      const updated = { ...splits };
-      activeMembers.forEach((id) => {
-        if (updated[id]) {
-          updated[id].amount =
-            (updated[id].percentage / 100) * transactionTotal;
-        }
-      });
+      const updated = splits.map((split) => ({
+        ...split,
+        amount: (split.percentage / 100) * transactionTotal,
+      }));
       setSplits(updated);
     }
 
@@ -88,20 +82,22 @@ export default function SplittingCollapsible({
 
   // Handle percentage change
   const handlePercentageChange = (memberId: string, percentage: number) => {
-    const currentPercentage = splits[memberId]?.percentage || 0;
+    const currentSplit = splits.find((s) => s.groupMemberId === memberId);
+    const currentPercentage = currentSplit?.percentage || 0;
     if (Math.abs(currentPercentage - percentage) < 0.01) {
       return;
     }
 
     setIsModified(true);
-    const updated = {
-      ...splits,
-      [memberId]: {
-        ...splits[memberId],
-        percentage,
-        amount: (percentage / 100) * transactionTotal,
-      },
-    };
+    const updated = splits.map((split) =>
+      split.groupMemberId === memberId
+        ? {
+            ...split,
+            percentage,
+            amount: (percentage / 100) * transactionTotal,
+          }
+        : split,
+    );
     setSplits(updated);
   };
 
@@ -117,9 +113,10 @@ export default function SplittingCollapsible({
     }
 
     const equalShare = 100 / activeMembers.length;
-    const isEvenSplit = activeMembers.every(
-      (id) => Math.abs((splits[id]?.percentage || 0) - equalShare) < 0.01,
-    );
+    const isEvenSplit = activeMembers.every((id) => {
+      const split = splits.find((s) => s.groupMemberId === id);
+      return Math.abs((split?.percentage || 0) - equalShare) < 0.01;
+    });
 
     if (isEvenSplit) {
       return `Even Split With ${activeMembers.length} People`;
@@ -149,7 +146,11 @@ export default function SplittingCollapsible({
           {/* Member entries with checkboxes and percentage inputs */}
           {groupMembers?.map((member) => {
             const isActive = activeMembers.includes(member.id);
-            const split = splits[member.id] || { percentage: 0, amount: 0 };
+            const split = splits.find((s) => s.groupMemberId === member.id) || {
+              groupMemberId: member.id,
+              percentage: 0,
+              amount: 0,
+            };
 
             return (
               <div

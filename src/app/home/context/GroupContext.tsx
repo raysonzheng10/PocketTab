@@ -9,6 +9,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import { useUser } from "./UserContext";
 
 type GroupContextType = {
   group: Group | null;
@@ -17,6 +18,7 @@ type GroupContextType = {
   groupLoading: boolean;
   refreshGroup: () => Promise<void>;
   groupId: string;
+  userGroupMemberId: string;
 };
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
@@ -25,10 +27,21 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const params = useParams();
   const groupId = params.groupId as string;
 
+  const { user } = useUser();
+  const [userGroupMemberId, setUserGroupMemberId] = useState<string>("");
+
   const [group, setGroup] = useState<Group | null>(null);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [error, setError] = useState("");
   const [groupLoading, setGroupLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user || !groupMembers.length) return;
+    const matchedMember = groupMembers.find(
+      (member) => member.userId === user.id,
+    );
+    setUserGroupMemberId(matchedMember ? matchedMember.id : "");
+  }, [user, groupMembers]);
 
   const fetchGroupWithGroupMembers = useCallback(async () => {
     setGroupLoading(true);
@@ -69,6 +82,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         error,
         refreshGroup: fetchGroupWithGroupMembers,
         groupId,
+        userGroupMemberId,
       }}
     >
       {children}

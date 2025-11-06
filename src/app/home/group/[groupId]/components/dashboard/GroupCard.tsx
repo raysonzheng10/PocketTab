@@ -74,7 +74,7 @@ export default function GroupCard() {
                   <span className="hidden sm:inline">Share</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
+              <PopoverContent align="end">
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Invite Link</p>
                   <p className="text-xs text-muted-foreground">

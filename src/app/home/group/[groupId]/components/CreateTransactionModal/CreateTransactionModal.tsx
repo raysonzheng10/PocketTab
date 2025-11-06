@@ -11,11 +11,11 @@ import { Separator } from "@/components/ui/separator";
 import SplittingCollapsible from "./SplittingCollapsible";
 import { useError } from "@/app/home/context/ErrorContext";
 import { ExpenseSplit } from "@/types";
-import { useTransactions } from "../../../context/TransactionContext";
+import { useTransactions } from "../../context/TransactionContext";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OneTimeTransactionContent from "./OneTimeTransactionContent";
 import RecurringTransactionContent from "./RecurringTransactionContent";
-import { useRecurringTransactions } from "../../../context/RecurringTransactionContext";
+import { useRecurringTransactions } from "../../context/RecurringTransactionContext";
 
 export interface CreateTransactionModalProps {
   open: boolean;
@@ -45,19 +45,16 @@ export default function CreateTransactionModal({
   const [interval, setInterval] = useState<string>("");
 
   const [isSplitOptionsOpen, setIsSplitOptionsOpen] = useState(false);
-  const [expenseSplits, setExpenseSplits] = useState<
-    Record<string, ExpenseSplit>
-  >({});
+  const [expenseSplits, setExpenseSplits] = useState<ExpenseSplit[]>([]);
 
   const initializeSplits = useCallback(() => {
     if (!groupMembers || groupMembers.length === 0) return;
 
-    const initialSplits = Object.fromEntries(
-      groupMembers.map((member) => [
-        member.id,
-        { percentage: 100 / groupMembers.length, amount: 0 },
-      ]),
-    );
+    const initialSplits = groupMembers.map((member) => ({
+      groupMemberId: member.id,
+      percentage: 100 / groupMembers.length,
+      amount: 0,
+    }));
 
     setExpenseSplits(initialSplits);
   }, [groupMembers]);
@@ -80,7 +77,8 @@ export default function CreateTransactionModal({
   };
 
   const handleCreateTransaction = async () => {
-    const totalPercentage = Object.values(expenseSplits).reduce(
+    // ! this is the only check made on splits adding correctly, will want to add more checks in the future
+    const totalPercentage = expenseSplits.reduce(
       (sum, split) => sum + split.percentage,
       0,
     );
@@ -157,6 +155,7 @@ export default function CreateTransactionModal({
           <OneTimeTransactionContent
             title={title}
             setTitle={setTitle}
+            amount={amount}
             setAmount={setAmount}
             date={date}
             setDate={setDate}
@@ -166,6 +165,7 @@ export default function CreateTransactionModal({
           <RecurringTransactionContent
             title={title}
             setTitle={setTitle}
+            amount={amount}
             setAmount={setAmount}
             date={date}
             setDate={setDate}
@@ -197,7 +197,7 @@ export default function CreateTransactionModal({
             }
             onClick={handleCreateTransaction}
           >
-            Create
+            Create Transaction
           </Button>
         </div>
       </DialogContent>

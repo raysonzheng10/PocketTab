@@ -25,6 +25,7 @@ import { useState } from "react";
 interface OneTimeTransactionContentProps {
   title: string;
   setTitle: (title: string) => void;
+  amount: number;
   setAmount: (amount: number) => void;
   date: Date;
   setDate: (date: Date) => void;
@@ -35,6 +36,7 @@ interface OneTimeTransactionContentProps {
 export default function OneTimeTransactionContent({
   title,
   setTitle,
+  amount,
   setAmount,
   date,
   setDate,
@@ -58,7 +60,7 @@ export default function OneTimeTransactionContent({
       </FormField>
 
       <FormField title="Amount">
-        <AmountInput setAmount={setAmount} />
+        <AmountInput amount={amount} setAmount={setAmount} />
       </FormField>
 
       <FormField title="Paid By">

@@ -34,7 +34,9 @@ export default function SettlementDetails() {
   return (
     <div>
       <div className="flex flex-row items-center justify-between pb-3">
-        <h3 className="text-xl font-semibold">Your Balance</h3>
+        <h3 className="text-lg sm:text-xl truncate font-semibold">
+          Your Balance
+        </h3>
         {hasUnsettled && (
           <Button
             onClick={handleNavigateSettlements}
@@ -47,7 +49,7 @@ export default function SettlementDetails() {
       </div>
 
       <div
-        className={`flex flex-row-reverse items-center text-5xl font-bold tracking-tight mt-2 ${
+        className={`flex flex-row-reverse items-center text-3xl sm:text-5xl font-bold tracking-tight mt-2 ${
           isSettled
             ? "text-gray-500"
             : positive

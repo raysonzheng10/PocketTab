@@ -29,7 +29,9 @@ export default function RecentTransactions() {
   return (
     <div>
       <div className="flex flex-row justify-between items-center py-3 mb-4">
-        <h3 className="text-xl font-semibold">Recent Transactions</h3>
+        <h3 className="text-lg sm:text-xl font-semibold truncate">
+          Recent Transactions
+        </h3>
         {recentTransactions.length > 0 && (
           <Button
             variant="outline"

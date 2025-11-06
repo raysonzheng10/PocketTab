@@ -8,10 +8,10 @@ import BreakdownCards from "./BreakdownCards";
 import SummaryCard from "./SummaryCard";
 import { DetailedSettlement } from "@/types";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 interface SettlementsCardProps {
   setIsCreateTransactionModalOpen: (open: boolean) => void;
@@ -20,18 +20,8 @@ interface SettlementsCardProps {
 export default function SettlementsCard({
   setIsCreateTransactionModalOpen,
 }: SettlementsCardProps) {
-  const { settlementsLoading } = useSettlements();
+  const { settlements, settlementsLoading } = useSettlements();
 
-  const settlements = [
-    { groupMemberId: "1001", nickname: "Sarah", amount: 23.0 },
-    {
-      groupMemberId: "1003",
-      nickname: "Emmdasjdklasjkldasjkldjaskldjsakldsajdjsakldjaskla",
-      amount: 67.25,
-    },
-
-    { groupMemberId: "1009", nickname: "Morgan", amount: -19.99 },
-  ];
   const debtSettlements =
     settlements
       ?.filter(({ amount }) => amount <= -0.01)
@@ -145,14 +135,21 @@ function SectionHeader({
 }) {
   return (
     <div className="flex flex-row gap-2 justify-between items-center mb-4 h-12">
-      <div className="flex flex-row items-center gap-2 min-w-0">
+      <div className="flex flex-row items-center gap-1 min-w-0">
         {tooltipText && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="w-4 h-4" />
-            </TooltipTrigger>
-            <TooltipContent>{tooltipText}</TooltipContent>
-          </Tooltip>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="static"
+                className="rounded-full hover:bg-gray-100 active:bg-gray-200 transition"
+              >
+                <Info className="size-4 text-gray-500" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="text-xs sm:text-sm" align="start">
+              {tooltipText}
+            </PopoverContent>
+          </Popover>
         )}
         <h2
           className={`text-md sm:text-xl font-semibold truncate block ${

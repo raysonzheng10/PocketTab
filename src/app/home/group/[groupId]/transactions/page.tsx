@@ -24,7 +24,7 @@ function PageContent() {
     useState<boolean>(false);
 
   return (
-    <div className="h-screen overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <TransactionsCard
           setIsCreateTransactionModalOpen={setIsCreateTransactionModalOpen}

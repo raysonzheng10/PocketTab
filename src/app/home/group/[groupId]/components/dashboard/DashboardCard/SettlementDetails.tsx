@@ -41,7 +41,7 @@ export default function SettlementDetails() {
             variant="outline"
             size="sm"
           >
-            Settle Up
+            All Settlements
           </Button>
         )}
       </div>

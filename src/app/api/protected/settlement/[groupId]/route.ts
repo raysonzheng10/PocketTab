@@ -42,7 +42,7 @@ export async function GET(
 
     const total = settlements.reduce((acc, { amount }) => acc + amount, 0);
 
-    return NextResponse.json({ settlements: detailedSettlements, total });
+    return NextResponse.json({ settlements, total });
   } catch (err: unknown) {
     console.error("Error in POST /settlement/[groupId]:", err);
     let message = "Server error";

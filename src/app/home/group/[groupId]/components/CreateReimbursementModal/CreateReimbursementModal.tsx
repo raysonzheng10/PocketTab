@@ -50,7 +50,6 @@ export default function CreateReimbursementModal({
   const { settlements } = useSettlements();
   const { setError } = useError();
 
-  console.log(settlements);
   const [title, setTitle] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
@@ -225,7 +224,7 @@ export default function CreateReimbursementModal({
                     </Popover>
                   </FormField>
                 </div>
-                {amount < Math.abs(recipientSettlement.amount) && (
+                {amount + Math.abs(recipientSettlement.amount) >= 0.01 && (
                   <Alert variant="warning">
                     <AlertCircle className="size-4" />
                     <AlertDescription>

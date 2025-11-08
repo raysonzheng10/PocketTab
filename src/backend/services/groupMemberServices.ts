@@ -3,6 +3,7 @@ import {
   getGroupMemberByUserIdAndGroupId,
   updateGroupMember,
 } from "../repositories/groupMemberRepo";
+import { getGroupById } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
 
 export async function updateGroupMemberNickname(
@@ -29,6 +30,13 @@ export async function updateGroupMemberActiveStatus(
 }
 
 export async function joinUserToGroup(userId: string, groupId: string) {
+  // first verify if the groupId points to a valid group
+  const group = await getGroupById(groupId);
+  if (!group) {
+    console.log("BAD GROUP");
+    throw new Error("Invalid GroupID Provided");
+  }
+
   const existingGroupMember = await getGroupMemberByUserIdAndGroupId(
     userId,
     groupId,

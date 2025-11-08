@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 import {
   checkUserIsInGroup,
-  getGroupWithGroupMembersByGroupId,
+  getGroupWithDetailedGroupMembersByGroupId,
 } from "@/backend/services/groupServices";
-import { GroupMember } from "@/types";
+import { DetailedGroupMember } from "@/types";
 
 export async function GET(
   req: NextRequest,
@@ -26,14 +26,17 @@ export async function GET(
     }
 
     const groupWithGroupMembers =
-      await getGroupWithGroupMembersByGroupId(groupId);
+      await getGroupWithDetailedGroupMembersByGroupId(groupId);
 
-    const sanitizedGroupMembers: GroupMember[] =
+    const sanitizedGroupMembers: DetailedGroupMember[] =
       groupWithGroupMembers.groupMembers.map((m) => ({
         id: m.id,
         createdAt: m.createdAt,
         nickname: m.nickname,
+        leftAt: m.leftAt,
+        active: m.active,
         userId: m.userId,
+        userEmail: m.user.email,
       }));
 
     return NextResponse.json({

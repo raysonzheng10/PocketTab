@@ -1,16 +1,18 @@
 import { Group } from "@/types";
 import { prisma } from "../db";
 import {
+  getDetailedGroupMembersByGroupId,
   getGroupMemberByUserIdAndGroupId,
   getGroupMembersWithGroupsByUserId,
-  getGroupMembersByGroupId,
 } from "../repositories/groupMemberRepo";
 import { getGroupById } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
 
-export async function getGroupWithGroupMembersByGroupId(groupId: string) {
+export async function getGroupWithDetailedGroupMembersByGroupId(
+  groupId: string,
+) {
   const group = await getGroupById(groupId);
-  const groupMembers = await getGroupMembersByGroupId(groupId);
+  const groupMembers = await getDetailedGroupMembersByGroupId(groupId);
 
   return { group: group, groupMembers: groupMembers };
 }

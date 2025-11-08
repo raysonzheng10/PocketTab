@@ -13,6 +13,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { groupId } = body;
 
+    if (!groupId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
     const groupMember = await joinUserToGroup(authUser.id, groupId);
 
     return NextResponse.json({ groupMember });

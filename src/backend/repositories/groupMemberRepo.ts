@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 
 // get groupMembers
@@ -49,4 +50,14 @@ export async function createGroupMember(data: {
   nickname: string;
 }) {
   return prisma.groupMember.create({ data });
+}
+
+export async function updateGroupMember(
+  id: string,
+  data: Prisma.GroupMemberUpdateInput,
+) {
+  return prisma.groupMember.update({
+    where: { id },
+    data,
+  });
 }

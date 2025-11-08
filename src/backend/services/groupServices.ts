@@ -3,7 +3,7 @@ import { prisma } from "../db";
 import {
   getDetailedGroupMembersByGroupId,
   getGroupMemberByUserIdAndGroupId,
-  getGroupMembersWithGroupsByUserId,
+  getActiveGroupMembersWithGroupsByUserId,
 } from "../repositories/groupMemberRepo";
 import { getGroupById } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
@@ -17,9 +17,9 @@ export async function getGroupWithDetailedGroupMembersByGroupId(
   return { group: group, groupMembers: groupMembers };
 }
 
-export async function getGroupsByUserId(userId: string) {
+export async function getActiveGroupsByUserId(userId: string) {
   const groupMembersWithGroups =
-    await getGroupMembersWithGroupsByUserId(userId);
+    await getActiveGroupMembersWithGroupsByUserId(userId);
 
   const groups: Group[] = groupMembersWithGroups.map(
     (groupMemberWithGroup) => groupMemberWithGroup.group,

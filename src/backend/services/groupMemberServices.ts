@@ -33,7 +33,6 @@ export async function joinUserToGroup(userId: string, groupId: string) {
   // first verify if the groupId points to a valid group
   const group = await getGroupById(groupId);
   if (!group) {
-    console.log("BAD GROUP");
     throw new Error("Invalid GroupID Provided");
   }
 

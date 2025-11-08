@@ -20,6 +20,23 @@ export async function getGroupMemberByUserIdAndGroupId(
   });
 }
 
+export async function getDetailedGroupMemberByUserIdAndGroupId(
+  userId: string,
+  groupId: string,
+) {
+  return prisma.groupMember.findUnique({
+    where: {
+      userId_groupId: {
+        userId,
+        groupId,
+      },
+    },
+    include: {
+      user: true,
+    },
+  });
+}
+
 export async function getGroupMembersByUserId(userId: string) {
   return prisma.groupMember.findMany({ where: { userId } });
 }
@@ -31,9 +48,9 @@ export async function getDetailedGroupMembersByGroupId(groupId: string) {
   });
 }
 
-export async function getGroupMembersWithGroupsByUserId(userId: string) {
+export async function getActiveGroupMembersWithGroupsByUserId(userId: string) {
   return prisma.groupMember.findMany({
-    where: { userId },
+    where: { userId, active: true },
     include: { group: true },
   });
 }

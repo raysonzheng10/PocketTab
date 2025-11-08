@@ -1,6 +1,6 @@
 // api/protected/group
 import { NextRequest, NextResponse } from "next/server";
-import { getGroupsByUserId } from "@/backend/services/groupServices";
+import { getActiveGroupsByUserId } from "@/backend/services/groupServices";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 
 // gets all groups that the user is in
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
 
-    const groups = await getGroupsByUserId(authUser.id);
+    const groups = await getActiveGroupsByUserId(authUser.id);
 
     return NextResponse.json({ groups });
   } catch (err: unknown) {

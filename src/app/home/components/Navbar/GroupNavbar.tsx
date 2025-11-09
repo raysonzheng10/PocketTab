@@ -39,7 +39,7 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
   );
 
   const handleNavigateToManageGroups = () => {
-    router.push("/home");
+    window.location.href = "/home";
     onNavigate?.();
   };
 

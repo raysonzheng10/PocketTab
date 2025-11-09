@@ -25,12 +25,14 @@ export default function LeaveGroupAlert() {
     const leaveSuccess = await removeGroupMemberFromGroup({
       groupMemberId: userGroupMemberId,
     });
-    setIsLeavingGroup(false);
 
     if (!leaveSuccess) {
+      setIsLeavingGroup(false);
       setError("Failed to leave group");
       return;
     }
+
+    window.location.href = "/home";
   };
 
   return (

@@ -8,7 +8,6 @@ import OtherMembersContent from "./OtherMembersContent";
 export default function MembersCard() {
   const { groupLoading, groupMembers, userGroupMemberId } = useGroup();
 
-  console.log(groupMembers);
   const currentUser = groupMembers.find((m) => m.id === userGroupMemberId);
 
   if (groupLoading || !currentUser) {

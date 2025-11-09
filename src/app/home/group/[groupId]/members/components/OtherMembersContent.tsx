@@ -2,13 +2,19 @@ import { useGroup } from "@/app/home/context/GroupContext";
 import { formatDate } from "@/app/utils/utils";
 import { useState } from "react";
 import ShareGroupPopover from "../../components/dashboard/GroupCard/ShareGroupPopover";
+import { Badge } from "@/components/ui/badge";
 
 export default function OtherMembersContent() {
   const { groupMembers, userGroupMemberId } = useGroup();
 
   const [isSharePopoverOpen, setIsSharePopoverOpen] = useState<boolean>(false);
 
-  const otherMembers = groupMembers.filter((m) => m.id !== userGroupMemberId);
+  const otherMembers = groupMembers
+    .filter((m) => m.id !== userGroupMemberId)
+    .sort((a, b) => {
+      if (a.active === b.active) return 0;
+      return a.active ? -1 : 1;
+    });
 
   return (
     <div>
@@ -32,12 +38,25 @@ export default function OtherMembersContent() {
               key={member.id}
               className="flex items-center justify-between py-2"
             >
-              <div>
-                <p className="font-medium">{member.nickname}</p>
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`font-medium truncate ${!member.active ? "text-gray-400" : ""}`}
+                >
+                  {member.nickname}
+                </p>
                 <p className="text-sm text-gray-500">
-                  Joined {formatDate(member.createdAt)}
+                  {member.active
+                    ? `Joined ${formatDate(member.createdAt)}`
+                    : member.leftAt
+                      ? `Left ${formatDate(member.leftAt)}`
+                      : ""}
                 </p>
               </div>
+              {!member.active && (
+                <Badge className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded shrink-0">
+                  Not in Group
+                </Badge>
+              )}
             </div>
           ))}
         </div>

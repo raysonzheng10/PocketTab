@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function MembersCardSkeleton() {
+export default function MemberSettingsSkeleton() {
   return (
     <Card className="shadow-sm">
       <CardContent className="pt-6 space-y-6">

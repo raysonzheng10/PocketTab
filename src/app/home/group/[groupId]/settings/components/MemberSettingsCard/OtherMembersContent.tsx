@@ -1,7 +1,7 @@
 import { useGroup } from "@/app/home/context/GroupContext";
 import { formatDate } from "@/app/utils/utils";
 import { useState } from "react";
-import ShareGroupPopover from "../../components/dashboard/GroupCard/ShareGroupPopover";
+import ShareGroupPopover from "../../../components/dashboard/GroupCard/ShareGroupPopover";
 import { Badge } from "@/components/ui/badge";
 
 export default function OtherMembersContent() {

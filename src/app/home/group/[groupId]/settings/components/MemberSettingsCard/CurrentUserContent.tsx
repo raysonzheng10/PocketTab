@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DetailedGroupMember } from "@/types";
 import { useState } from "react";
 import LeaveGroupAlert from "./LeaveGroupAlert";
+import { Input } from "@/components/ui/input";
 
 export interface CurrentUserContentProps {
   currentUser: DetailedGroupMember;
@@ -43,19 +44,18 @@ export default function CurrentUserContent({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">
+      <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
         You
       </h3>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+        <div className="flex-1 h-16">
           {isEditingNickname ? (
             <div className="space-y-2">
-              <input
+              <Input
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 placeholder={currentUser.nickname}
-                className="w-full px-3 py-2 border rounded-md"
                 autoFocus
               />
               <div className="flex gap-2">

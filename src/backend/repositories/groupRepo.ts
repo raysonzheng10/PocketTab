@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 
 // get groups
@@ -18,4 +19,11 @@ export async function createGroup(data: {
   description?: string | null;
 }) {
   return prisma.group.create({ data });
+}
+
+export async function updateGroup(id: string, data: Prisma.GroupUpdateInput) {
+  return prisma.group.update({
+    where: { id },
+    data,
+  });
 }

@@ -2,11 +2,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useError } from "../../context/ErrorContext";
 import { useGroup } from "../../context/GroupContext";
-import GroupCard from "./components/dashboard/GroupCard";
 import CreateTransactionModal from "./components/CreateTransactionModal/CreateTransactionModal";
 import DashboardCard from "./components/dashboard/DashboardCard/DashboardCard";
 import ActionButtons from "./components/dashboard/ActionButtons";
 import CreateReimbursementModal from "./components/CreateReimbursementModal/CreateReimbursementModal";
+import GroupCard from "./components/dashboard/GroupCard/GroupCard";
 
 function PageContent() {
   const { setError } = useError();

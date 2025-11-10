@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Users,
   Settings,
   ArrowLeft,
   CreditCard,
@@ -39,7 +38,7 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
   );
 
   const handleNavigateToManageGroups = () => {
-    router.push("/home");
+    window.location.href = "/home";
     onNavigate?.();
   };
 
@@ -58,12 +57,6 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
   const handleNavigateSettlements = () => {
     if (!group) return;
     router.push(`/home/group/${group.id}/settlements`);
-    onNavigate?.();
-  };
-
-  const handleNavigateMembers = () => {
-    if (!group) return;
-    router.push(`/home/group/${group.id}/members`);
     onNavigate?.();
   };
 
@@ -120,16 +113,11 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
             text="Settlements"
             onClick={handleNavigateSettlements}
           />
-          <NavigationTab
-            isActive={isMembersActive}
-            icon={<Users className="h-5 w-5" />}
-            text="Members"
-            onClick={handleNavigateMembers}
-          />
+
           <NavigationTab
             isActive={isGroupSettingsActive}
             icon={<Settings className="h-5 w-5" />}
-            text="Group Settings"
+            text="Settings"
             onClick={handleNavigateGroupSettings}
           />
         </div>

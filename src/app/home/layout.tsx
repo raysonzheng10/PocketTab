@@ -83,7 +83,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 pt-14 lg:pt-0 overflow-hidden">{children}</main>
+      <main className="flex-1 pt-14 lg:pt-0 overflow-auto">{children}</main>
     </div>
   );
 }

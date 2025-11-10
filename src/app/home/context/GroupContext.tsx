@@ -1,5 +1,5 @@
 "use client";
-import { Group, GroupMember } from "@/types";
+import { Group, DetailedGroupMember } from "@/types";
 import { useParams } from "next/navigation";
 import {
   createContext,
@@ -13,12 +13,24 @@ import { useUser } from "./UserContext";
 
 type GroupContextType = {
   group: Group | null;
-  error: string;
-  groupMembers: GroupMember[];
-  groupLoading: boolean;
-  refreshGroup: () => Promise<void>;
   groupId: string;
+  groupLoading: boolean;
+  updateGroupDetails: (params: {
+    groupId: string;
+    newName?: string;
+    newDescription?: string;
+  }) => Promise<boolean>;
+  refreshGroup: () => Promise<void>;
   userGroupMemberId: string;
+  groupMembers: DetailedGroupMember[];
+  updateGroupMemberNickname: (params: {
+    groupMemberId: string;
+    nickname: string;
+  }) => Promise<boolean>;
+  removeGroupMemberFromGroup: (params: {
+    groupMemberId: string;
+  }) => Promise<boolean>;
+  error: string;
 };
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
@@ -31,7 +43,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const [userGroupMemberId, setUserGroupMemberId] = useState<string>("");
 
   const [group, setGroup] = useState<Group | null>(null);
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [groupMembers, setGroupMembers] = useState<DetailedGroupMember[]>([]);
   const [error, setError] = useState("");
   const [groupLoading, setGroupLoading] = useState(true);
 
@@ -68,21 +80,135 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     }
   }, [groupId]);
 
+  const updateGroupDetails = useCallback(
+    async ({
+      groupId,
+      newName,
+      newDescription,
+    }: {
+      groupId: string;
+      newName?: string;
+      newDescription?: string;
+    }) => {
+      try {
+        const res = await fetch(`/api/protected/group/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            groupId,
+            newName,
+            newDescription,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to update group details");
+
+        setGroup(data.group);
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!groupId) return;
     fetchGroupWithGroupMembers();
   }, [groupId, fetchGroupWithGroupMembers]);
 
+  const updateGroupMemberNickname = useCallback(
+    async ({
+      groupMemberId,
+      nickname,
+    }: {
+      groupMemberId: string;
+      nickname: string;
+    }) => {
+      try {
+        const res = await fetch(`/api/protected/groupMember/updateNickname`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            groupMemberId,
+            newNickname: nickname,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(
+            data.error || "Failed to update groupMember nickname",
+          );
+
+        fetchGroupWithGroupMembers();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      }
+    },
+    [fetchGroupWithGroupMembers],
+  );
+
+  const removeGroupMemberFromGroup = useCallback(
+    async ({ groupMemberId }: { groupMemberId: string }) => {
+      try {
+        const res = await fetch(`/api/protected/group/leave`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            groupMemberId,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(
+            data.error || "Failed to remove groupMember from group",
+          );
+
+        fetchGroupWithGroupMembers();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      }
+    },
+    [fetchGroupWithGroupMembers],
+  );
+
   return (
     <GroupContext.Provider
       value={{
         group,
-        groupMembers,
-        groupLoading,
-        error,
-        refreshGroup: fetchGroupWithGroupMembers,
         groupId,
+        groupLoading,
+        updateGroupDetails,
+        refreshGroup: fetchGroupWithGroupMembers,
         userGroupMemberId,
+        groupMembers,
+        updateGroupMemberNickname,
+        removeGroupMemberFromGroup,
+        error,
       }}
     >
       {children}

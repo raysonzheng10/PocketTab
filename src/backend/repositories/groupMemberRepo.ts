@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 
 // get groupMembers
@@ -19,17 +20,37 @@ export async function getGroupMemberByUserIdAndGroupId(
   });
 }
 
+export async function getDetailedGroupMemberByUserIdAndGroupId(
+  userId: string,
+  groupId: string,
+) {
+  return prisma.groupMember.findUnique({
+    where: {
+      userId_groupId: {
+        userId,
+        groupId,
+      },
+    },
+    include: {
+      user: true,
+    },
+  });
+}
+
 export async function getGroupMembersByUserId(userId: string) {
   return prisma.groupMember.findMany({ where: { userId } });
 }
 
-export async function getGroupMembersByGroupId(groupId: string) {
-  return prisma.groupMember.findMany({ where: { groupId } });
+export async function getDetailedGroupMembersByGroupId(groupId: string) {
+  return prisma.groupMember.findMany({
+    where: { groupId },
+    include: { user: true },
+  });
 }
 
-export async function getGroupMembersWithGroupsByUserId(userId: string) {
+export async function getActiveGroupMembersWithGroupsByUserId(userId: string) {
   return prisma.groupMember.findMany({
-    where: { userId },
+    where: { userId, active: true },
     include: { group: true },
   });
 }
@@ -49,4 +70,14 @@ export async function createGroupMember(data: {
   nickname: string;
 }) {
   return prisma.groupMember.create({ data });
+}
+
+export async function updateGroupMember(
+  id: string,
+  data: Prisma.GroupMemberUpdateInput,
+) {
+  return prisma.groupMember.update({
+    where: { id },
+    data,
+  });
 }

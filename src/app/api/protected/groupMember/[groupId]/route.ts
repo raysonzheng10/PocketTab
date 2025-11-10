@@ -1,10 +1,7 @@
-// api/protected/group/[groupId]
+// api/protected/groupMember/[groupId]
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import {
-  checkUserIsInGroup,
-  getGroupWithDetailedGroupMembersByGroupId,
-} from "@/backend/services/groupServices";
+import { getDetailedGroupMemberByUserIdAndGroupId } from "@/backend/repositories/groupMemberRepo";
 import { DetailedGroupMember } from "@/types";
 
 export async function GET(
@@ -18,31 +15,30 @@ export async function GET(
     }
 
     const groupId = (await context.params).groupId;
-    if (!(await checkUserIsInGroup(authUser.id, groupId))) {
+
+    const groupMember = await getDetailedGroupMemberByUserIdAndGroupId(
+      authUser.id,
+      groupId,
+    );
+
+    if (!groupMember || !groupMember.active) {
       return NextResponse.json(
         { error: "User is not a part of this group" },
         { status: 400 },
       );
     }
 
-    const groupWithGroupMembers =
-      await getGroupWithDetailedGroupMembersByGroupId(groupId);
+    const DetailedGroupMember: DetailedGroupMember = {
+      id: groupMember.id,
+      createdAt: groupMember.createdAt,
+      nickname: groupMember.nickname,
+      leftAt: groupMember.leftAt,
+      active: groupMember.active,
+      userId: groupMember.userId,
+      userEmail: groupMember.user.email,
+    };
 
-    const sanitizedGroupMembers: DetailedGroupMember[] =
-      groupWithGroupMembers.groupMembers.map((m) => ({
-        id: m.id,
-        createdAt: m.createdAt,
-        nickname: m.nickname,
-        leftAt: m.leftAt,
-        active: m.active,
-        userId: m.userId,
-        userEmail: m.user.email,
-      }));
-
-    return NextResponse.json({
-      group: groupWithGroupMembers.group,
-      groupMembers: sanitizedGroupMembers,
-    });
+    return NextResponse.json({ groupMember: DetailedGroupMember });
   } catch (err: unknown) {
     console.error("Error in POST /group/[groupId]:", err);
     let message = "Server error";

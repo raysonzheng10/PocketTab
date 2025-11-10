@@ -1,23 +1,25 @@
 import { Group } from "@/types";
 import { prisma } from "../db";
 import {
+  getDetailedGroupMembersByGroupId,
   getGroupMemberByUserIdAndGroupId,
-  getGroupMembersWithGroupsByUserId,
-  getGroupMembersByGroupId,
+  getActiveGroupMembersWithGroupsByUserId,
 } from "../repositories/groupMemberRepo";
-import { getGroupById } from "../repositories/groupRepo";
+import { getGroupById, updateGroup } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
 
-export async function getGroupWithGroupMembersByGroupId(groupId: string) {
+export async function getGroupWithDetailedGroupMembersByGroupId(
+  groupId: string,
+) {
   const group = await getGroupById(groupId);
-  const groupMembers = await getGroupMembersByGroupId(groupId);
+  const groupMembers = await getDetailedGroupMembersByGroupId(groupId);
 
   return { group: group, groupMembers: groupMembers };
 }
 
-export async function getGroupsByUserId(userId: string) {
+export async function getActiveGroupsByUserId(userId: string) {
   const groupMembersWithGroups =
-    await getGroupMembersWithGroupsByUserId(userId);
+    await getActiveGroupMembersWithGroupsByUserId(userId);
 
   const groups: Group[] = groupMembersWithGroups.map(
     (groupMemberWithGroup) => groupMemberWithGroup.group,
@@ -53,4 +55,21 @@ export async function createNewGroupByUserId(userId: string) {
 
     return newGroup;
   });
+}
+
+export async function updateGroupDetails(
+  groupId: string,
+  newName?: string,
+  newDescription?: string,
+) {
+  if (newName === undefined && newDescription === undefined) {
+    throw new Error("Invalid parameters for updating group details");
+  }
+
+  const updatedGroup = await updateGroup(groupId, {
+    ...(newName && { name: newName }),
+    ...(newDescription && { description: newDescription }),
+  });
+
+  return updatedGroup;
 }

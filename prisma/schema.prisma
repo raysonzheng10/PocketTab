@@ -31,12 +31,14 @@ model Group {
 }
 
 model GroupMember {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  userId    String   @db.Uuid
-  groupId   String   @db.Uuid
+  id        String    @id @default(uuid()) @db.Uuid
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  userId    String    @db.Uuid
+  groupId   String    @db.Uuid
   nickname  String
+  leftAt    DateTime? // time stamp of leaving
+  active    Boolean   @default(true) // cached status for fast filtering
 
   transactions          Transaction[] // A groupMember can make multiple transactions (payer)
   recurringTransactions RecurringTransaction[] // A groupMember can be responsible for paying multiple recurring transactions (payer)

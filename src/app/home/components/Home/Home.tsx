@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "../../context/UserContext";
 import GroupList from "./GroupList";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const router = useRouter();
@@ -30,22 +31,25 @@ export default function Home() {
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between gap-2 mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                   Your Groups
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
                   Manage and access your groups
                 </p>
               </div>
-              <button
+              <Button
                 onClick={handleCreateNewGroup}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                variant={"default"}
+                size={"sm"}
               >
                 <Plus className="h-4 w-4" />
-                Create Group
-              </button>
+                <span>
+                  Create <span className="hidden sm:inline">Group</span>
+                </span>
+              </Button>
             </div>
 
             {/* Groups List / Skeleton */}

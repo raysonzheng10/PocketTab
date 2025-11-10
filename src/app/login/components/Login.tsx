@@ -65,7 +65,6 @@ export default function Login() {
         }),
       });
 
-      console.log(setTokenRes);
       if (!setTokenRes.ok) {
         const text = await setTokenRes.text();
         throw new Error(`Failed to set tokens: ${text}`);
@@ -95,11 +94,19 @@ export default function Login() {
       <div className="w-full max-w-md space-y-4">
         {error && (
           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="size-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
+        {redirectTo && (
+          <Alert variant="info">
+            <AlertCircle className="size-4" />
+            <AlertDescription>
+              Please sign in first to continue joining this group
+            </AlertDescription>
+          </Alert>
+        )}
         {isOtpSent ? (
           <OtpForm
             otp={otp}

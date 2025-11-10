@@ -33,48 +33,47 @@ export default function SettlementDetails() {
 
   return (
     <div>
-      <div className="flex flex-row items-center justify-between pb-3">
-        <h3 className="text-lg sm:text-xl truncate font-semibold">
-          Your Balance
-        </h3>
-        {hasUnsettled && (
-          <Button
-            onClick={handleNavigateSettlements}
-            variant="outline"
-            size="sm"
+      {!isSettled ? (
+        <>
+          <div className="flex flex-row items-center justify-between pb-3">
+            <h3 className="text-lg sm:text-xl truncate font-semibold">
+              {positive ? "You're Owed" : "You Owe"}
+            </h3>
+            {hasUnsettled && (
+              <Button
+                onClick={handleNavigateSettlements}
+                variant="outline"
+                size="sm"
+              >
+                View Settlements
+              </Button>
+            )}
+          </div>
+
+          <div
+            className={`flex flex-row-reverse items-center text-3xl sm:text-5xl font-bold tracking-tight mt-2 ${
+              positive ? "text-green-600" : "text-red-600"
+            }`}
           >
-            All Settlements
-          </Button>
-        )}
-      </div>
+            ${formattedTotal}
+          </div>
 
-      <div
-        className={`flex flex-row-reverse items-center text-3xl sm:text-5xl font-bold tracking-tight mt-2 ${
-          isSettled
-            ? "text-gray-500"
-            : positive
-              ? "text-green-600"
-              : "text-red-600"
-        }`}
-      >
-        <p>
-          {isSettled ? "$0.00" : `${positive ? "+" : "-"}$${formattedTotal}`}
-        </p>
-      </div>
-
-      <div className="text-sm text-muted-foreground mt-3">
-        {isSettled ? (
-          "All settled up!"
-        ) : (
-          <>
+          <div className="text-sm text-muted-foreground mt-3">
             {owedToYou > 0 &&
               `${owedToYou} ${owedToYou === 1 ? "person owes" : "people owe"} you`}
             {owedToYou > 0 && youOwe > 0 && " • "}
             {youOwe > 0 &&
               `You owe ${youOwe} ${youOwe === 1 ? "person" : "people"}`}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center">
+          <h3 className="text-2xl font-semibold">All Settled Up</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            You owe no one money and no one owes you.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import {
   getGroupMemberByUserIdAndGroupId,
   getActiveGroupMembersWithGroupsByUserId,
 } from "../repositories/groupMemberRepo";
-import { getGroupById } from "../repositories/groupRepo";
+import { getGroupById, updateGroup } from "../repositories/groupRepo";
 import { getUserById } from "../repositories/userRepo";
 
 export async function getGroupWithDetailedGroupMembersByGroupId(
@@ -55,4 +55,21 @@ export async function createNewGroupByUserId(userId: string) {
 
     return newGroup;
   });
+}
+
+export async function updateGroupDetails(
+  groupId: string,
+  newName?: string,
+  newDescription?: string,
+) {
+  if (newName === undefined && newDescription === undefined) {
+    throw new Error("Invalid parameters for updating group details");
+  }
+
+  const updatedGroup = await updateGroup(groupId, {
+    ...(newName && { name: newName }),
+    ...(newDescription && { description: newDescription }),
+  });
+
+  return updatedGroup;
 }

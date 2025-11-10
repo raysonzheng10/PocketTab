@@ -1,7 +1,7 @@
-// api/protected/group/leave
+// api/protected/group/update
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import { updateGroupMemberActiveStatus } from "@/backend/services/groupMemberServices";
+import { updateGroupDetails } from "@/backend/services/groupServices";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,22 +10,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
 
-    const { groupMemberId } = await req.json();
-    if (!groupMemberId) {
+    const { groupId, newName, newDescription } = await req.json();
+    if (!groupId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
 
-    const updatedGroupMember = await updateGroupMemberActiveStatus(
-      groupMemberId,
-      false,
+    const updatedGroup = await updateGroupDetails(
+      groupId,
+      newName,
+      newDescription,
     );
 
-    return NextResponse.json({ groupMember: updatedGroupMember });
+    return NextResponse.json({ group: updatedGroup });
   } catch (err: unknown) {
-    console.error("Error in POST /group/leave:", err);
+    console.error("Error in POST /group/update:", err);
     let message = "Server error";
     if (err instanceof Error) message = err.message;
     return NextResponse.json({ error: message }, { status: 500 });

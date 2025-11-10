@@ -15,6 +15,11 @@ type GroupContextType = {
   group: Group | null;
   groupId: string;
   groupLoading: boolean;
+  updateGroupDetails: (params: {
+    groupId: string;
+    newName?: string;
+    newDescription?: string;
+  }) => Promise<boolean>;
   refreshGroup: () => Promise<void>;
   userGroupMemberId: string;
   groupMembers: DetailedGroupMember[];
@@ -74,6 +79,46 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       setGroupLoading(false);
     }
   }, [groupId]);
+
+  const updateGroupDetails = useCallback(
+    async ({
+      groupId,
+      newName,
+      newDescription,
+    }: {
+      groupId: string;
+      newName?: string;
+      newDescription?: string;
+    }) => {
+      try {
+        const res = await fetch(`/api/protected/group/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            groupId,
+            newName,
+            newDescription,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to update group details");
+
+        setGroup(data.group);
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error creating transaction",
+        );
+        return false;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!groupId) return;
@@ -157,6 +202,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         group,
         groupId,
         groupLoading,
+        updateGroupDetails,
         refreshGroup: fetchGroupWithGroupMembers,
         userGroupMemberId,
         groupMembers,

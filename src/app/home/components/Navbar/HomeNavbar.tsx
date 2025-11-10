@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Settings, X } from "lucide-react";
+import { Users, X } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 import NavigationTab from "./NavigationTab";
 import UserLogout from "./UserLogout";
@@ -17,17 +17,17 @@ export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
   const pathname = usePathname();
 
   const isManageGroupsActive = pathname === "/home";
-  const isAccountSettingsActive = pathname === "/home/account";
 
   const handleNavigateToManageGroups = () => {
     router.push("/home");
     onNavigate?.();
   };
 
-  const handleNavigateToAccountSettings = () => {
-    router.push("/home/account");
-    onNavigate?.();
-  };
+  // const isAccountSettingsActive = pathname === "/home/account";
+  // const handleNavigateToAccountSettings = () => {
+  //   router.push("/home/account");
+  //   onNavigate?.();
+  // };
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
@@ -53,12 +53,12 @@ export default function HomeNavbar({ onNavigate, setError }: NavbarProps) {
             text="Manage Groups"
             onClick={handleNavigateToManageGroups}
           />
-          <NavigationTab
+          {/* <NavigationTab
             isActive={isAccountSettingsActive}
             icon={<Settings className="h-5 w-5" />}
             text="Account Settings"
             onClick={handleNavigateToAccountSettings}
-          />
+          /> */}
         </div>
       </div>
 

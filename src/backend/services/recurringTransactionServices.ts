@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
-import { getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
+import { getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
 
 type expense = {
   groupMemberId: string;
@@ -75,23 +75,20 @@ export async function createRecurringTransactionWithRecurringExpenses(
   });
 }
 
-export async function getDetailedRecurringTransactionsByGroupIdPaginated(
+export async function getActiveDetailedRecurringTransactionsByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ) {
-  const {
-    recurringTransactionsWithGroupMemberAndRecurringExpenses,
-    nextCursor,
-  } =
-    await getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
+  const { activeRecurringTransactions, nextCursor } =
+    await getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
       groupId,
       limit,
       cursor,
     );
 
-  const detailedRecurringTransactions =
-    recurringTransactionsWithGroupMemberAndRecurringExpenses.map((t) => ({
+  const detailedActiveRecurringTransactions = activeRecurringTransactions.map(
+    (t) => ({
       id: t.id,
       createdAt: t.createdAt,
       title: t.title,
@@ -107,7 +104,8 @@ export async function getDetailedRecurringTransactionsByGroupIdPaginated(
         groupMemberNickname: e.groupMember.nickname,
         amount: e.amount,
       })),
-    }));
+    }),
+  );
 
-  return { detailedRecurringTransactions, nextCursor };
+  return { detailedActiveRecurringTransactions, nextCursor };
 }

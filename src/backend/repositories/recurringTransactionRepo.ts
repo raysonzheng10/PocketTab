@@ -3,11 +3,17 @@ import { Prisma } from "@prisma/client";
 
 // get recurring transactions with their respective expenses
 export async function getAllDueRecurringTransactionsWithRecurringExpenses() {
-  const now = new Date();
+  const nowPlusOneDay = new Date();
+  nowPlusOneDay.setDate(nowPlusOneDay.getDate() + 1);
 
   return prisma.recurringTransaction.findMany({
     where: {
-      nextOccurrence: { lte: now },
+      AND: [
+        { nextOccurrence: { lte: nowPlusOneDay } },
+        {
+          OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+        },
+      ],
     },
   });
 }
@@ -43,14 +49,17 @@ export async function updateRecurringTransaction(
   });
 }
 
-export async function getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
+export async function getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ) {
   const recurringTransactionsWithGroupMemberAndRecurringExpenses =
     await prisma.recurringTransaction.findMany({
-      where: { groupId },
+      where: {
+        groupId,
+        OR: [{ endDate: null }, { endDate: { gte: new Date() } }], // only grabbing active Recurring Transactions
+      },
       include: {
         groupMember: true,
         recurringExpenses: {
@@ -64,16 +73,20 @@ export async function getRecurringTransactionWithGroupMemberAndRecurringExpenses
       ...(cursor ? { cursor: { id: cursor } } : {}),
     });
 
+  const activeRecurringTransactions =
+    recurringTransactionsWithGroupMemberAndRecurringExpenses.filter(
+      (rt) => rt.endDate === null || rt.endDate >= rt.nextOccurrence,
+    );
+
   let nextCursor: string | null = null;
   // grab next cursor if possible
-  if (recurringTransactionsWithGroupMemberAndRecurringExpenses.length > limit) {
-    const nextItem =
-      recurringTransactionsWithGroupMemberAndRecurringExpenses.pop();
+  if (activeRecurringTransactions.length > limit) {
+    const nextItem = activeRecurringTransactions.pop();
     nextCursor = nextItem?.id || null;
   }
 
   return {
-    recurringTransactionsWithGroupMemberAndRecurringExpenses,
+    activeRecurringTransactions,
     nextCursor,
   };
 }

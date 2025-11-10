@@ -13,6 +13,7 @@ import { DetailedRecurringTransaction } from "@/types";
 import { useState } from "react";
 import RecurringTransactionSheet from "./RecurringTransactionSheet";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function RecurringTransactionsTable() {
   const { recurringTransactions, recurringTransactionsLoading } =
@@ -22,7 +23,13 @@ export default function RecurringTransactionsTable() {
     useState<DetailedRecurringTransaction | null>(null);
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <Alert variant="info">
+        <AlertDescription className="text-center">
+          Only recurring transactions that are still active will be displayed.
+        </AlertDescription>
+      </Alert>
+
       <div className="border rounded-lg overflow-auto max-h-[calc(100vh-250px)]">
         <Table>
           <TableHeader className="sticky top-0 bg-white z-10">
@@ -77,6 +84,6 @@ export default function RecurringTransactionsTable() {
         selectedTransaction={selectedTransaction}
         setSelectedTransaction={setSelectedTransaction}
       />
-    </>
+    </div>
   );
 }

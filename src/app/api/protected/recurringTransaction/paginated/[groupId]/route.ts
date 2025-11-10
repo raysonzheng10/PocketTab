@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkUserIsInGroup } from "@/backend/services/groupServices";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import { getDetailedRecurringTransactionsByGroupIdPaginated } from "@/backend/services/recurringTransactionServices";
+import { getActiveDetailedRecurringTransactionsByGroupIdPaginated } from "@/backend/services/recurringTransactionServices";
 
 export async function GET(
   req: NextRequest,
@@ -26,15 +26,15 @@ export async function GET(
     const limit = Math.min(Number(searchParams.get("limit")) || 10); // ? pagination should be unused right now
     const cursor = searchParams.get("cursor") || undefined;
 
-    const { detailedRecurringTransactions, nextCursor } =
-      await getDetailedRecurringTransactionsByGroupIdPaginated(
+    const { detailedActiveRecurringTransactions, nextCursor } =
+      await getActiveDetailedRecurringTransactionsByGroupIdPaginated(
         groupId,
         limit,
         cursor,
       );
 
     return NextResponse.json({
-      recurringTransactions: detailedRecurringTransactions,
+      recurringTransactions: detailedActiveRecurringTransactions,
       cursor: nextCursor,
     });
   } catch (err: unknown) {

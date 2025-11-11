@@ -226,7 +226,7 @@ export function RecurringTransactionProvider({
             data.error || "Failed to delete recurring transaction",
           );
 
-        resetRecurringTransactions();
+        await resetRecurringTransactions();
         setError("");
         return true;
       } catch (err: unknown) {

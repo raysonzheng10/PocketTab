@@ -94,19 +94,6 @@ export default function CreateTransactionModal({
       setError("Must select an Interval");
     }
 
-    const transactionSuccess = await createTransaction({
-      transactionOwnerId: payerId,
-      title,
-      amount,
-      date,
-      splits: expenseSplits,
-    });
-
-    if (!transactionSuccess) {
-      setError("Failed to create the transaction.");
-      return;
-    }
-
     if (transactionType === "recurring") {
       const recurringTransactionSuccess = await createRecurringTransaction({
         transactionOwnerId: payerId,
@@ -119,10 +106,22 @@ export default function CreateTransactionModal({
       });
 
       if (!recurringTransactionSuccess) {
-        setError(
-          "Failed to create recurring transaction but created the first instance.",
-        );
+        setError("Failed to create recurring transaction.");
+        return;
       }
+    }
+
+    const transactionSuccess = await createTransaction({
+      transactionOwnerId: payerId,
+      title,
+      amount,
+      date,
+      splits: expenseSplits,
+    });
+
+    if (!transactionSuccess) {
+      setError("Failed to create the transaction.");
+      return;
     }
 
     handleCloseModal();

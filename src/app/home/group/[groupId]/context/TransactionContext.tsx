@@ -199,7 +199,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         if (!res.ok || data.error)
           throw new Error(data.error || "Failed to delete transaction");
 
-        resetTransactions();
+        await resetTransactions();
         refreshSettlements();
         setError("");
         return true;

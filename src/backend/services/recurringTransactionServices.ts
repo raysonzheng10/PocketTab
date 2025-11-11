@@ -7,42 +7,33 @@ type expense = {
   amount: number;
 };
 
-export function getNextOccurrence(interval: string, startDate: Date): Date {
-  const next = new Date(startDate); // clone the date
+export function getNextOccurrence(
+  interval: string,
+  originalStartDate: Date,
+  lastOccurrenceDate: Date,
+): Date {
+  const next = new Date(lastOccurrenceDate);
 
   switch (interval) {
     case "daily":
       next.setDate(next.getDate() + 1);
       break;
+
     case "weekly":
       next.setDate(next.getDate() + 7);
       break;
-    case "monthly":
-      const originalDay = startDate.getDate();
-      next.setMonth(next.getMonth() + 1);
 
-      // If we're on the last day of the original month, stay on last day
-      const lastDayOfOriginalMonth = new Date(
-        startDate.getFullYear(),
-        startDate.getMonth() + 1,
-        0,
-      ).getDate();
+    case "monthly": {
+      const originalDay = originalStartDate.getDate();
+      const targetMonth = next.getMonth() + 1;
+      next.setMonth(targetMonth, originalDay);
 
-      if (originalDay === lastDayOfOriginalMonth) {
-        // Set to last day of target month
-        const lastDayOfTargetMonth = new Date(
-          next.getFullYear(),
-          next.getMonth() + 1,
-          0,
-        ).getDate();
-        next.setDate(lastDayOfTargetMonth);
-      } else if (next.getDate() !== originalDay) {
-        // Overflow occurred (e.g., Jan 31 -> Mar 3), clamp to last day of target month
-        next.setDate(0); // Goes back to last day of previous month
+      // If month overflowed (e.g., Feb 31 → Mar 2), rollback to end of target month
+      if (next.getMonth() !== targetMonth % 12) {
+        next.setDate(0);
       }
       break;
-    default:
-      throw new Error(`Invalid interval: ${interval}`);
+    }
   }
 
   return next;
@@ -71,7 +62,11 @@ export async function createRecurringTransactionWithRecurringExpenses(
         interval,
         startDate,
         endDate,
-        nextOccurrence: getNextOccurrence(interval, startDate),
+        nextOccurrence: getNextOccurrence(
+          interval,
+          new Date(startDate),
+          new Date(startDate),
+        ),
       },
     });
 

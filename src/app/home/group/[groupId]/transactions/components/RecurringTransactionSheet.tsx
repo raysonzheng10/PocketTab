@@ -44,13 +44,13 @@ export default function RecurringTransactionSheet({
     }
 
     setIsDeleting(false);
-    setSelectedTransaction(null);
+    closeSheet();
   };
 
   const closeSheet = () => {
+    setSelectedTransaction(null);
     setShowConfirm(false);
     setIsDeleting(false);
-    setSelectedTransaction(null);
   };
 
   return (

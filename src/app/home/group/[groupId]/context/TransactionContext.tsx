@@ -210,7 +210,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
             : "Unknown error deleting transaction",
         );
         return false;
-      } finally {
       }
     },
     [resetTransactions, refreshSettlements],

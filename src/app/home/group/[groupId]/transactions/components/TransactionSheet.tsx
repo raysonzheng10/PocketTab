@@ -125,13 +125,7 @@ export default function TransactionSheet({
 
               {/* Meta Info */}
               <div className="text-xs text-muted-foreground">
-                <p>
-                  Created{" "}
-                  {new Date(selectedTransaction.createdAt).toLocaleDateString(
-                    "en-US",
-                    { month: "short", day: "numeric", year: "numeric" },
-                  )}
-                </p>
+                <p>Created {formatDate(selectedTransaction.createdAt)}</p>
               </div>
 
               {/* Delete Button */}

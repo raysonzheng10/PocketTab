@@ -18,12 +18,29 @@ export function getNextOccurrence(interval: string, startDate: Date): Date {
       next.setDate(next.getDate() + 7);
       break;
     case "monthly":
+      const originalDay = startDate.getDate();
       next.setMonth(next.getMonth() + 1);
+
+      // If we're on the last day of the original month, stay on last day
+      const lastDayOfOriginalMonth = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth() + 1,
+        0,
+      ).getDate();
+
+      if (originalDay === lastDayOfOriginalMonth) {
+        // Set to last day of target month
+        const lastDayOfTargetMonth = new Date(
+          next.getFullYear(),
+          next.getMonth() + 1,
+          0,
+        ).getDate();
+        next.setDate(lastDayOfTargetMonth);
+      } else if (next.getDate() !== originalDay) {
+        // Overflow occurred (e.g., Jan 31 -> Mar 3), clamp to last day of target month
+        next.setDate(0); // Goes back to last day of previous month
+      }
       break;
-    // TODO: implement monthly/other intervals
-    // case "yearly":
-    //   next.setFullYear(next.getFullYear() + 1);
-    //   break;
     default:
       throw new Error(`Invalid interval: ${interval}`);
   }
@@ -108,4 +125,24 @@ export async function getActiveDetailedRecurringTransactionsByGroupIdPaginated(
   );
 
   return { detailedActiveRecurringTransactions, nextCursor };
+}
+
+export async function deleteRecurringTransactionWithRecurringExpenses(
+  recurringTransactionId: string,
+): Promise<boolean> {
+  await prisma.$transaction(async (tx) => {
+    await tx.recurringExpense.deleteMany({
+      where: {
+        recurringTransactionId,
+      },
+    });
+
+    await tx.recurringTransaction.delete({
+      where: {
+        id: recurringTransactionId,
+      },
+    });
+  });
+
+  return true;
 }

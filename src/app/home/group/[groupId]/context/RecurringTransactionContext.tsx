@@ -33,6 +33,9 @@ type RecurringTransactionContextType = {
     splits: ExpenseSplit[];
   }) => Promise<boolean>;
   createRecurringTransactionLoading: boolean;
+  deleteRecurringTransaction: (params: {
+    recurringTransactionId: string;
+  }) => Promise<boolean>;
   error: string;
 };
 
@@ -206,6 +209,37 @@ export function RecurringTransactionProvider({
     [resetRecurringTransactions],
   );
 
+  const deleteRecurringTransaction = useCallback(
+    async ({ recurringTransactionId }: { recurringTransactionId: string }) => {
+      try {
+        const res = await fetch(`/api/protected/recurringTransaction/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recurringTransactionId,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(
+            data.error || "Failed to delete recurring transaction",
+          );
+
+        resetRecurringTransactions();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error deleting recurring transaction",
+        );
+        return false;
+      }
+    },
+    [resetRecurringTransactions],
+  );
   return (
     <RecurringTransactionContext.Provider
       value={{
@@ -216,6 +250,7 @@ export function RecurringTransactionProvider({
         // hasMoreRecurringTransactions,
         createRecurringTransaction,
         createRecurringTransactionLoading: isCreateRecurringTransactionLoading,
+        deleteRecurringTransaction,
         error,
       }}
     >

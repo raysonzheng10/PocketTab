@@ -269,7 +269,7 @@ export async function deleteTransactionWithExpensesAndUpdateSettlementsInTx(
     where: { id: transactionId },
   });
 
-  return { success: true };
+  return true;
 }
 
 export async function deleteTransactionWithExpensesAndUpdateSettlements(

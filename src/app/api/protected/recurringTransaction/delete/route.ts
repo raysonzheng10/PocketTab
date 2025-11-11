@@ -1,7 +1,7 @@
-// api/protected/transaction/delete
-import { deleteTransactionWithExpensesAndUpdateSettlements } from "@/backend/services/transactionServices";
+// api/protected/recurringTransaction/delete
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
+import { deleteRecurringTransactionWithRecurringExpenses } from "@/backend/services/recurringTransactionServices";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,21 +10,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
     }
 
-    const { transactionId } = await req.json();
+    const { recurringTransactionId } = await req.json();
 
-    if (!transactionId) {
+    if (!recurringTransactionId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
 
-    const success =
-      await deleteTransactionWithExpensesAndUpdateSettlements(transactionId);
+    const success = await deleteRecurringTransactionWithRecurringExpenses(
+      recurringTransactionId,
+    );
 
     if (!success) {
       return NextResponse.json(
-        { error: "Failed to delete transaction" },
+        { error: "Failed to delete recurring transaction" },
         { status: 500 },
       );
     }

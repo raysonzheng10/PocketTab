@@ -59,7 +59,7 @@ export default function RecentTransactions() {
                   <h4 className="font-semibold text-base leading-tight">
                     {transaction.title}
                   </h4>
-                  <span className="text-lg font-bold tabular-nums shrink-0">
+                  <span className="text-lg text-primary font-bold tabular-nums shrink-0">
                     ${Math.abs(transaction.amount).toFixed(2)}
                   </span>
                 </div>

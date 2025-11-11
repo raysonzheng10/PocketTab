@@ -52,12 +52,6 @@ export default function SettlementsCard({
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Settlements</h1>
           <p className="text-gray-600">Manage what you owe to others</p>
         </div>
-        {/* Information Cards */}
-        <SummaryCard />
-        <BreakdownCards totalOwed={totalOwed} totalCredits={totalCredits} />
-
-        <Separator className="my-8" />
-
         {fullySettled ? (
           <div className="bg-emerald-50 rounded-lg shadow-sm p-12 text-center border-2 border-green-200">
             <Check className="size-16 text-green-500 mx-auto" />
@@ -67,55 +61,62 @@ export default function SettlementsCard({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Debts Section */}
-            <div className="w-full lg:w-1/2 flex flex-col">
-              <SectionHeader
-                headerText={`Payments Due (${debtSettlements.length})`}
-                isPositive={false}
-                tooltipText="Create a reimbursement to clear your owed balances"
-                setIsCreateTransactionModalOpen={
-                  setIsCreateTransactionModalOpen
-                }
-              />
+          <>
+            {/* Information Cards */}
+            <SummaryCard />
+            <BreakdownCards totalOwed={totalOwed} totalCredits={totalCredits} />
 
-              {debtSettlements.length > 0 ? (
-                <div className="flex flex-col gap-2 max-h-[300px] max-w-full overflow-y-auto">
-                  {debtSettlements.map((debt) => (
-                    <SettlementLineItem
-                      key={debt.groupMemberId}
-                      settlement={debt}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <SectionClear description="You do not owe anyone money right now." />
-              )}
-            </div>
+            <Separator className="my-8" />
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Debts Section */}
+              <div className="w-full lg:w-1/2 flex flex-col">
+                <SectionHeader
+                  headerText={`Payments Due (${debtSettlements.length})`}
+                  isPositive={false}
+                  tooltipText="Create a reimbursement to clear your owed balances"
+                  setIsCreateTransactionModalOpen={
+                    setIsCreateTransactionModalOpen
+                  }
+                />
 
-            {/* Credits Section */}
-            <div className="w-full lg:w-1/2 flex flex-col">
-              <SectionHeader
-                headerText={`Awaiting Payments (${creditSettlements.length})`}
-                isPositive={true}
-                tooltipText="These balances will update automatically once others
+                {debtSettlements.length > 0 ? (
+                  <div className="flex flex-col gap-2 max-h-[300px] max-w-full overflow-y-auto">
+                    {debtSettlements.map((debt) => (
+                      <SettlementLineItem
+                        key={debt.groupMemberId}
+                        settlement={debt}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <SectionClear description="You do not owe anyone money right now." />
+                )}
+              </div>
+
+              {/* Credits Section */}
+              <div className="w-full lg:w-1/2 flex flex-col">
+                <SectionHeader
+                  headerText={`Awaiting Payments (${creditSettlements.length})`}
+                  isPositive={true}
+                  tooltipText="These balances will update automatically once others
                       record their reimbursements to you"
-              />
+                />
 
-              {creditSettlements.length > 0 ? (
-                <div className="flex flex-col gap-2 max-h-[300px] max-w-full overflow-y-auto">
-                  {creditSettlements.map((credit) => (
-                    <SettlementLineItem
-                      key={credit.groupMemberId}
-                      settlement={credit}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <SectionClear description="You are not waiting on anyone to repay you." />
-              )}
+                {creditSettlements.length > 0 ? (
+                  <div className="flex flex-col gap-2 max-h-[300px] max-w-full overflow-y-auto">
+                    {creditSettlements.map((credit) => (
+                      <SettlementLineItem
+                        key={credit.groupMemberId}
+                        settlement={credit}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <SectionClear description="You are not waiting on anyone to repay you." />
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </CardContent>
     </Card>

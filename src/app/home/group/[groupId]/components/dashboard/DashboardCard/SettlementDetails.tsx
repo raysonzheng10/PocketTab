@@ -68,7 +68,9 @@ export default function SettlementDetails() {
         </>
       ) : (
         <div className="text-center">
-          <h3 className="text-2xl font-semibold">All Settled Up</h3>
+          <h3 className="text-2xl text-primary font-semibold">
+            All Settled Up
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
             You owe no one money and no one owes you.
           </p>

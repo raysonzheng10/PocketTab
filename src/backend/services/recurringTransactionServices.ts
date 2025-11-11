@@ -1,31 +1,39 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
-import { getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
+import { getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
 
 type expense = {
   groupMemberId: string;
   amount: number;
 };
 
-export function getNextOccurrence(interval: string, startDate: Date): Date {
-  const next = new Date(startDate); // clone the date
+export function getNextOccurrence(
+  interval: string,
+  originalStartDate: Date,
+  lastOccurrenceDate: Date,
+): Date {
+  const next = new Date(lastOccurrenceDate);
 
   switch (interval) {
     case "daily":
       next.setDate(next.getDate() + 1);
       break;
+
     case "weekly":
       next.setDate(next.getDate() + 7);
       break;
-    case "monthly":
-      next.setMonth(next.getMonth() + 1);
+
+    case "monthly": {
+      const originalDay = originalStartDate.getDate();
+      const targetMonth = next.getMonth() + 1;
+      next.setMonth(targetMonth, originalDay);
+
+      // If month overflowed (e.g., Feb 31 → Mar 2), rollback to end of target month
+      if (next.getMonth() !== targetMonth % 12) {
+        next.setDate(0);
+      }
       break;
-    // TODO: implement monthly/other intervals
-    // case "yearly":
-    //   next.setFullYear(next.getFullYear() + 1);
-    //   break;
-    default:
-      throw new Error(`Invalid interval: ${interval}`);
+    }
   }
 
   return next;
@@ -54,7 +62,11 @@ export async function createRecurringTransactionWithRecurringExpenses(
         interval,
         startDate,
         endDate,
-        nextOccurrence: getNextOccurrence(interval, startDate),
+        nextOccurrence: getNextOccurrence(
+          interval,
+          new Date(startDate),
+          new Date(startDate),
+        ),
       },
     });
 
@@ -75,23 +87,20 @@ export async function createRecurringTransactionWithRecurringExpenses(
   });
 }
 
-export async function getDetailedRecurringTransactionsByGroupIdPaginated(
+export async function getActiveDetailedRecurringTransactionsByGroupIdPaginated(
   groupId: string,
   limit: number,
   cursor?: string,
 ) {
-  const {
-    recurringTransactionsWithGroupMemberAndRecurringExpenses,
-    nextCursor,
-  } =
-    await getRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
+  const { activeRecurringTransactions, nextCursor } =
+    await getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
       groupId,
       limit,
       cursor,
     );
 
-  const detailedRecurringTransactions =
-    recurringTransactionsWithGroupMemberAndRecurringExpenses.map((t) => ({
+  const detailedActiveRecurringTransactions = activeRecurringTransactions.map(
+    (t) => ({
       id: t.id,
       createdAt: t.createdAt,
       title: t.title,
@@ -107,7 +116,28 @@ export async function getDetailedRecurringTransactionsByGroupIdPaginated(
         groupMemberNickname: e.groupMember.nickname,
         amount: e.amount,
       })),
-    }));
+    }),
+  );
 
-  return { detailedRecurringTransactions, nextCursor };
+  return { detailedActiveRecurringTransactions, nextCursor };
+}
+
+export async function deleteRecurringTransactionWithRecurringExpenses(
+  recurringTransactionId: string,
+): Promise<boolean> {
+  await prisma.$transaction(async (tx) => {
+    await tx.recurringExpense.deleteMany({
+      where: {
+        recurringTransactionId,
+      },
+    });
+
+    await tx.recurringTransaction.delete({
+      where: {
+        id: recurringTransactionId,
+      },
+    });
+  });
+
+  return true;
 }

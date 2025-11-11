@@ -8,6 +8,7 @@ import {
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
+import { formatDate } from "@/app/utils/utils";
 
 type expense = {
   groupMemberId: string;
@@ -91,6 +92,10 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
     throw new Error(
       "transactionOwnerId does not link to valid GroupId, owner of recurring transaction not in group",
     );
+  console.log(
+    recurringTransaction,
+    formatDate(recurringTransaction.nextOccurrence),
+  );
 
   return prisma.$transaction(async (tx) => {
     // Create transaction with expenses and settlements
@@ -114,6 +119,7 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
       data: {
         nextOccurrence: getNextOccurrence(
           recurringTransaction.interval,
+          recurringTransaction.startDate,
           newTransaction.date,
         ),
       },
@@ -210,6 +216,7 @@ export async function getDetailedTransactionsByGroupIdPaginated(
       amount: t.amount,
       title: t.title,
       date: t.date,
+      isReimbursement: t.isReimbursement,
       groupMemberId: t.groupMemberId,
       groupMemberNickname: t.groupMember.nickname,
       detailedExpenses: t.expenses.map((e) => ({
@@ -221,4 +228,63 @@ export async function getDetailedTransactionsByGroupIdPaginated(
   );
 
   return { detailedTransactions, nextCursor };
+}
+
+// Pass in a tx client to perform transaction
+export async function deleteTransactionWithExpensesAndUpdateSettlementsInTx(
+  tx: Prisma.TransactionClient,
+  transactionId: string,
+) {
+  // fetch the transaction along with its expenses
+  const transaction = await tx.transaction.findUnique({
+    where: { id: transactionId },
+    include: { expenses: true },
+  });
+
+  if (!transaction) throw new Error("Transaction not found");
+
+  const transactionOwnerId = transaction.groupMemberId;
+
+  // Reverse settlements for each expense
+  await Promise.all(
+    transaction.expenses.map(async (expense) => {
+      if (expense.groupMemberId !== transactionOwnerId) {
+        await tx.settlement.update({
+          where: {
+            payerId_recipientId: {
+              payerId: expense.groupMemberId,
+              recipientId: transactionOwnerId,
+            },
+          },
+          // decrement the corresponding settlement
+          data: {
+            amount: { decrement: expense.amount },
+          },
+        });
+      }
+    }),
+  );
+
+  // delete all expenses
+  await tx.expense.deleteMany({
+    where: { transactionId },
+  });
+
+  // delete the transaction itself
+  await tx.transaction.delete({
+    where: { id: transactionId },
+  });
+
+  return true;
+}
+
+export async function deleteTransactionWithExpensesAndUpdateSettlements(
+  transactionId: string,
+) {
+  return prisma.$transaction(async (tx) => {
+    return deleteTransactionWithExpensesAndUpdateSettlementsInTx(
+      tx,
+      transactionId,
+    );
+  });
 }

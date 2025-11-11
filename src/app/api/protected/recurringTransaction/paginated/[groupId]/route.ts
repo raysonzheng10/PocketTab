@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkUserIsInGroup } from "@/backend/services/groupServices";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import { getDetailedRecurringTransactionsByGroupIdPaginated } from "@/backend/services/recurringTransactionServices";
+import { getActiveDetailedRecurringTransactionsByGroupIdPaginated } from "@/backend/services/recurringTransactionServices";
 
 export async function GET(
   req: NextRequest,
@@ -11,7 +11,7 @@ export async function GET(
   try {
     const authUser = await getAuthenticatedUser(req);
     if (!authUser) {
-      return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
+      return NextResponse.json({ error: "Not Authenticated" }, { status: 401 });
     }
 
     const groupId = (await context.params).groupId;
@@ -26,15 +26,15 @@ export async function GET(
     const limit = Math.min(Number(searchParams.get("limit")) || 10); // ? pagination should be unused right now
     const cursor = searchParams.get("cursor") || undefined;
 
-    const { detailedRecurringTransactions, nextCursor } =
-      await getDetailedRecurringTransactionsByGroupIdPaginated(
+    const { detailedActiveRecurringTransactions, nextCursor } =
+      await getActiveDetailedRecurringTransactionsByGroupIdPaginated(
         groupId,
         limit,
         cursor,
       );
 
     return NextResponse.json({
-      recurringTransactions: detailedRecurringTransactions,
+      recurringTransactions: detailedActiveRecurringTransactions,
       cursor: nextCursor,
     });
   } catch (err: unknown) {

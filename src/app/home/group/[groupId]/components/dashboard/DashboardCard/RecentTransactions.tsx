@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useTransactions } from "../../../context/TransactionContext";
 import TransactionSheet from "../../../transactions/components/TransactionSheet";
 import { DetailedTransaction } from "@/types";
+import { formatDate } from "@/app/utils/utils";
 
 export default function RecentTransactions() {
   const router = useRouter();
@@ -53,27 +54,25 @@ export default function RecentTransactions() {
               className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => setSelectedTransaction(transaction)}
             >
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-semibold">{transaction.title}</h4>
-                <span
-                  className={`text-lg font-bold ${
-                    transaction.amount >= 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  ${Math.abs(transaction.amount).toFixed(2)}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Paid by {transaction.groupMemberNickname}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(transaction.date).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <h4 className="font-semibold text-base leading-tight">
+                    {transaction.title}
+                  </h4>
+                  <span className="text-lg text-primary font-bold tabular-nums shrink-0">
+                    ${Math.abs(transaction.amount).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="truncate">
+                    {transaction.groupMemberNickname}
+                  </span>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="tabular-nums">
+                    {formatDate(transaction.date)}
+                  </span>
+                </div>
               </div>
             </div>
           ))

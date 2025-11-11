@@ -11,7 +11,7 @@ export async function GET(
   try {
     const authUser = await getAuthenticatedUser(req);
     if (!authUser) {
-      return NextResponse.json({ error: "Not Authenticated" }, { status: 400 });
+      return NextResponse.json({ error: "Not Authenticated" }, { status: 401 });
     }
 
     const groupId = (await context.params).groupId;

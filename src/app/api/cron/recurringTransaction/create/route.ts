@@ -13,7 +13,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // your recurring logic here
     const dueRecurringTransactions =
       await getAllDueRecurringTransactionsWithRecurringExpenses();
 

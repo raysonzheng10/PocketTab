@@ -37,6 +37,7 @@ type TransactionContextType = {
     date: Date;
   }) => Promise<boolean>;
   createReimbursementLoading: boolean;
+  deleteTransaction: (params: { transactionId: string }) => Promise<boolean>;
   error: string;
 };
 
@@ -183,6 +184,37 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     [resetTransactions, refreshSettlements],
   );
 
+  const deleteTransaction = useCallback(
+    async ({ transactionId }: { transactionId: string }) => {
+      try {
+        const res = await fetch(`/api/protected/transaction/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transactionId,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error)
+          throw new Error(data.error || "Failed to delete transaction");
+
+        await resetTransactions();
+        refreshSettlements();
+        setError("");
+        return true;
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unknown error deleting transaction",
+        );
+        return false;
+      }
+    },
+    [resetTransactions, refreshSettlements],
+  );
+
   const createReimbursement = useCallback(
     async ({
       reimbursementCreatorId,
@@ -248,6 +280,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         createTransactionLoading: isCreateTransactionLoading,
         createReimbursement,
         createReimbursementLoading: isCreateReimbursementLoading,
+        deleteTransaction,
         error,
       }}
     >

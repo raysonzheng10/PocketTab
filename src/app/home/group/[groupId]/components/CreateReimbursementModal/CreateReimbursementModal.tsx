@@ -224,7 +224,7 @@ export default function CreateReimbursementModal({
                     </Popover>
                   </FormField>
                 </div>
-                {amount + Math.abs(recipientSettlement.amount) >= 0.01 && (
+                {recipientSettlement.amount + amount <= -0.01 && (
                   <Alert variant="warning">
                     <AlertCircle className="size-4" />
                     <AlertDescription>

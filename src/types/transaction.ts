@@ -6,6 +6,7 @@ export interface DetailedTransaction {
   amount: number;
   title: string;
   date: Date;
+  isReimbursement: boolean;
   groupMemberId: string;
   groupMemberNickname: string;
   detailedExpenses: DetailedExpense[];

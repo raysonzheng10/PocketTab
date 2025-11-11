@@ -142,7 +142,9 @@ export default function TransactionSheet({
                   onClick={() => setShowConfirm(true)}
                 >
                   <Trash2 className="mr-1 size-4" />
-                  Delete Transaction
+                  {selectedTransaction.isReimbursement
+                    ? "Delete Reimbursement"
+                    : "Delete Transaction"}
                 </Button>
               ) : (
                 <div className="flex flex-col gap-4">

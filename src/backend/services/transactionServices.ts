@@ -210,6 +210,7 @@ export async function getDetailedTransactionsByGroupIdPaginated(
       amount: t.amount,
       title: t.title,
       date: t.date,
+      isReimbursement: t.isReimbursement,
       groupMemberId: t.groupMemberId,
       groupMemberNickname: t.groupMember.nickname,
       detailedExpenses: t.expenses.map((e) => ({

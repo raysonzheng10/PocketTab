@@ -5,6 +5,7 @@ import {
   CreateTransactionExpense,
   ExpenseSplit,
 } from "@/types";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -48,6 +49,8 @@ export function RecurringTransactionProvider({
 }: {
   children: ReactNode;
 }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
   const { groupId } = useGroup();
 
   const [recurringTransactions, setRecurringTransactions] = useState<

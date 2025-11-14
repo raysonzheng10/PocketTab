@@ -1,6 +1,6 @@
 "use client";
 import { Group, DetailedGroupMember } from "@/types";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -10,6 +10,7 @@ import {
   useCallback,
 } from "react";
 import { useUser } from "./UserContext";
+import { demoGroup, demoGroupMembers } from "@/app/demo/data/GroupContextData";
 
 type GroupContextType = {
   group: Group | null;
@@ -36,6 +37,8 @@ type GroupContextType = {
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 export function GroupProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
   const params = useParams();
   const groupId = params.groupId as string;
 
@@ -56,6 +59,13 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   }, [user, groupMembers]);
 
   const fetchGroupWithGroupMembers = useCallback(async () => {
+    if (isDemoMode) {
+      setGroup(demoGroup);
+      setGroupMembers(demoGroupMembers);
+      setError("");
+      return;
+    }
+
     setGroupLoading(true);
     try {
       const res = await fetch(`/api/protected/group/${groupId}`, {
@@ -78,7 +88,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     } finally {
       setGroupLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, isDemoMode]);
 
   const updateGroupDetails = useCallback(
     async ({
@@ -90,6 +100,18 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       newName?: string;
       newDescription?: string;
     }) => {
+      if (isDemoMode) {
+        setGroup((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            name: newName ?? prev.name,
+            description: newDescription ?? prev.description,
+          };
+        });
+        return true;
+      }
+
       try {
         const res = await fetch(`/api/protected/group/update`, {
           method: "POST",
@@ -117,7 +139,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [],
+    [isDemoMode],
   );
 
   useEffect(() => {
@@ -133,6 +155,15 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       groupMemberId: string;
       nickname: string;
     }) => {
+      if (isDemoMode) {
+        setGroupMembers((prev) => {
+          if (!prev) return prev;
+          return prev.map((member) =>
+            member.id === groupMemberId ? { ...member, nickname } : member,
+          );
+        });
+        return true;
+      }
       try {
         const res = await fetch(`/api/protected/groupMember/updateNickname`, {
           method: "POST",
@@ -161,11 +192,12 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [fetchGroupWithGroupMembers],
+    [fetchGroupWithGroupMembers, isDemoMode],
   );
 
   const removeGroupMemberFromGroup = useCallback(
     async ({ groupMemberId }: { groupMemberId: string }) => {
+      // ! DO NOT ALLOW IN DEMO
       try {
         const res = await fetch(`/api/protected/group/leave`, {
           method: "POST",

@@ -1,6 +1,11 @@
 "use client";
+import {
+  demoSettlements,
+  demoSettlementTotal,
+} from "@/app/demo/data/SettlementContextData";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { DetailedSettlement } from "@/types";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -12,6 +17,7 @@ import {
 
 type SettlementContextType = {
   settlements: DetailedSettlement[];
+  setSettlements: (settlements: DetailedSettlement[]) => void;
   settlementTotal: number;
   settlementsLoading: boolean;
   refreshSettlements: () => Promise<void>;
@@ -23,6 +29,8 @@ const SettlementContext = createContext<SettlementContextType | undefined>(
 );
 
 export function SettlementProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
   const { groupId } = useGroup();
 
   const [settlements, setSettlements] = useState<DetailedSettlement[]>([]);
@@ -31,6 +39,14 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
 
   const fetchSettlements = useCallback(async () => {
+    if (isDemoMode) {
+      setSettlementsLoading(true);
+      setSettlements(demoSettlements);
+      setSettlementTotal(demoSettlementTotal);
+      setSettlementsLoading(false);
+      return;
+    }
+
     setSettlementsLoading(true);
     try {
       const res = await fetch(`/api/protected/settlement/${groupId}`, {
@@ -55,7 +71,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     } finally {
       setSettlementsLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, isDemoMode]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -66,6 +82,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     <SettlementContext.Provider
       value={{
         settlements,
+        setSettlements,
         settlementTotal,
         settlementsLoading,
         refreshSettlements: fetchSettlements,

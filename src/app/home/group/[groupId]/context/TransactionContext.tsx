@@ -4,6 +4,7 @@ import {
   DetailedTransaction,
   CreateTransactionExpense,
   ExpenseSplit,
+  DetailedSettlement,
 } from "@/types";
 import {
   createContext,
@@ -17,6 +18,37 @@ import { useSettlements } from "./SettlementContext";
 import { usePathname } from "next/navigation";
 import { demoTransactions } from "@/app/demo/data/TransactionContextData";
 import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { demoUser } from "@/app/demo/data/UserContextData";
+
+// ! ONLY FOR DEMO SUPPORT
+function recomputeDemoSettlements(
+  transactions: DetailedTransaction[],
+): DetailedSettlement[] {
+  const ledger: Record<string, number> = {};
+
+  for (const tx of transactions) {
+    const payer = tx.groupMemberId;
+
+    for (const e of tx.detailedExpenses) {
+      if (e.groupMemberId === payer) continue;
+
+      if (demoUser.id === payer) {
+        ledger[e.groupMemberId] = (ledger[e.groupMemberId] ?? 0) + e.amount;
+      } else if (demoUser.id === e.groupMemberId) {
+        ledger[payer] = (ledger[payer] ?? 0) - e.amount;
+      }
+    }
+  }
+
+  return Object.entries(ledger).map(([id, amount]) => {
+    const member = demoGroupMembers.find((m) => m.id === id);
+    return {
+      groupMemberId: id,
+      nickname: member?.nickname ?? "",
+      amount,
+    };
+  });
+}
 
 type TransactionContextType = {
   transactions: DetailedTransaction[];
@@ -53,7 +85,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const isDemoMode = pathname?.startsWith("/demo");
 
   const { groupId } = useGroup();
-  const { refreshSettlements } = useSettlements();
+  const { refreshSettlements, setSettlements } = useSettlements();
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState<boolean>(true);
@@ -179,7 +211,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           })),
         };
 
-        setTransactions((prev) => [...prev, newTx]);
+        setTransactions((prev) => {
+          const next = [...prev, newTx];
+          setSettlements(recomputeDemoSettlements(next));
+          return next;
+        });
         setIsCreateTransactionLoading(false);
         return true;
       }
@@ -224,13 +260,17 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateTransactionLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements, isDemoMode],
+    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
   );
 
   const deleteTransaction = useCallback(
     async ({ transactionId }: { transactionId: string }) => {
       if (isDemoMode) {
-        setTransactions((prev) => prev.filter((tx) => tx.id !== transactionId));
+        setTransactions((prev) => {
+          const next = prev.filter((tx) => tx.id !== transactionId);
+          setSettlements(recomputeDemoSettlements(next));
+          return next;
+        });
         return true;
       }
 
@@ -260,7 +300,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
   );
 
   const createReimbursement = useCallback(
@@ -303,7 +343,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           ],
         };
 
-        setTransactions((prev) => [...prev, newTx]);
+        setTransactions((prev) => {
+          const next = [...prev, newTx];
+          setSettlements(recomputeDemoSettlements(next));
+          return next;
+        });
         setIsCreateReimbursementLoading(false);
         return true;
       }
@@ -344,7 +388,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateReimbursementLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements, isDemoMode],
+    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
   );
 
   return (

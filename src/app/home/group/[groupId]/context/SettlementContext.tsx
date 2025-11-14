@@ -74,9 +74,9 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   }, [groupId, isDemoMode]);
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchSettlements();
-  }, [groupId, fetchSettlements]);
+  }, [groupId, fetchSettlements, isDemoMode]);
 
   return (
     <SettlementContext.Provider

@@ -8,7 +8,7 @@ import ActionButtons from "./components/dashboard/ActionButtons";
 import CreateReimbursementModal from "./components/CreateReimbursementModal/CreateReimbursementModal";
 import GroupCard from "./components/dashboard/GroupCard/GroupCard";
 
-function PageContent() {
+export function GroupPageContent() {
   const { setError } = useError();
   const { error: groupContextError } = useGroup();
 
@@ -48,7 +48,7 @@ function PageContent() {
 export default function Page() {
   return (
     <Suspense fallback={<></>}>
-      <PageContent />
+      <GroupPageContent />
     </Suspense>
   );
 }

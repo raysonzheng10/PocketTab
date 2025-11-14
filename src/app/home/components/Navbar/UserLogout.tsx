@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 interface UserSectionProps {
   user: { email?: string } | null;
@@ -14,9 +15,16 @@ export default function UserLogout({
   userLoading,
   setError,
 }: UserSectionProps) {
+  const pathname = usePathname();
+  const isDemoPage = pathname.startsWith("/demo");
+
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
+    if (isDemoPage) {
+      window.location.href = "/";
+      return;
+    }
     setIsLogoutLoading(true);
     try {
       const res = await fetch("/api/protected/auth/clearToken", {
@@ -59,9 +67,13 @@ export default function UserLogout({
         ) : (
           <LogOut className="h-5 w-5" />
         )}
-        <span className="font-medium">
-          {isLogoutLoading ? "Logging out..." : "Logout"}
-        </span>
+        {isDemoPage ? (
+          <span className="font-medium">Exit Demo</span>
+        ) : (
+          <span className="font-medium">
+            {isLogoutLoading ? "Logging out..." : "Logout"}
+          </span>
+        )}
       </Button>
     </div>
   );

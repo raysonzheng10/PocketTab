@@ -146,7 +146,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchTransactions(transactionCursor);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -145,9 +145,9 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchGroupWithGroupMembers();
-  }, [groupId, fetchGroupWithGroupMembers]);
+  }, [groupId, fetchGroupWithGroupMembers, isDemoMode]);
 
   const updateGroupMemberNickname = useCallback(
     async ({

@@ -37,6 +37,8 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
     isGroupSettingsActive
   );
 
+  const isDemoPage = pathname.startsWith("/demo");
+
   const handleNavigateToManageGroups = () => {
     window.location.href = "/home";
     onNavigate?.();
@@ -44,25 +46,41 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
 
   const handleNavigateDashboard = () => {
     if (!group) return;
-    router.push(`/home/group/${group.id}`);
+    if (isDemoPage) {
+      router.push("/demo");
+    } else {
+      router.push(`/home/group/${group.id}`);
+    }
     onNavigate?.();
   };
 
   const handleNavigateTransactions = () => {
     if (!group) return;
-    router.push(`/home/group/${group.id}/transactions`);
+    if (isDemoPage) {
+      router.push("/demo/transactions");
+    } else {
+      router.push(`/home/group/${group.id}/transactions`);
+    }
     onNavigate?.();
   };
 
   const handleNavigateSettlements = () => {
     if (!group) return;
-    router.push(`/home/group/${group.id}/settlements`);
+    if (isDemoPage) {
+      router.push("/demo/settlements");
+    } else {
+      router.push(`/home/group/${group.id}/settlements`);
+    }
     onNavigate?.();
   };
 
   const handleNavigateGroupSettings = () => {
     if (!group) return;
-    router.push(`/home/group/${group.id}/settings`);
+    if (isDemoPage) {
+      router.push("/demo/settings");
+    } else {
+      router.push(`/home/group/${group.id}/settings`);
+    }
     onNavigate?.();
   };
 
@@ -84,15 +102,19 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
       {/* Navigation Tabs */}
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-2">
-          {/* Back to Groups */}
-          <NavigationTab
-            isActive={false} // or some state if needed
-            icon={<ArrowLeft className="h-5 w-5" />}
-            text="Back to Groups"
-            onClick={handleNavigateToManageGroups}
-          />
+          {!isDemoPage && (
+            <>
+              {/* Back to Groups */}
+              <NavigationTab
+                isActive={false} // or some state if needed
+                icon={<ArrowLeft className="h-5 w-5" />}
+                text="Back to Groups"
+                onClick={handleNavigateToManageGroups}
+              />
 
-          <Separator />
+              <Separator />
+            </>
+          )}
 
           {/* Group Tabs */}
           <NavigationTab

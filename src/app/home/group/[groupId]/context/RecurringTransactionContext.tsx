@@ -128,7 +128,7 @@ export function RecurringTransactionProvider({
   );
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchRecurringTransactions("");
 
     // fetchRecurringTransactions(recurringTransactionCursor);

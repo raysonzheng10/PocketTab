@@ -25,13 +25,15 @@ export default function HomeLayout({
   );
 }
 
-function HomeLayoutContent({ children }: { children: ReactNode }) {
+export function HomeLayoutContent({ children }: { children: ReactNode }) {
   const { setError } = useError();
   const { error: userError } = useUser();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isGroupPage = pathname.startsWith("/home/group");
+  const isDemoPage = pathname.startsWith("/demo");
+  const showGroupNavBar = isGroupPage || isDemoPage;
 
   // Handle user errors
   useEffect(() => {
@@ -66,7 +68,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
           ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        {isGroupPage ? (
+        {showGroupNavBar ? (
           <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
         ) : (
           <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
@@ -75,7 +77,7 @@ function HomeLayoutContent({ children }: { children: ReactNode }) {
 
       {/* Desktop Sidebar */}
       <div className="hidden lg:block w-64 shrink-0">
-        {isGroupPage ? (
+        {showGroupNavBar ? (
           <GroupNavbar onNavigate={handleCloseMobileMenu} setError={setError} />
         ) : (
           <HomeNavbar onNavigate={handleCloseMobileMenu} setError={setError} />

@@ -1,4 +1,6 @@
 "use client";
+import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { demoRecurringTransactions } from "@/app/demo/data/RecurringTransactionContextData";
 import { useGroup } from "@/app/home/context/GroupContext";
 import {
   DetailedRecurringTransaction,
@@ -70,6 +72,13 @@ export function RecurringTransactionProvider({
 
   const fetchRecurringTransactions = useCallback(
     async (cursor: string) => {
+      if (isDemoMode) {
+        setRecurringTransactionsLoading(true);
+        setRecurringTransactions(demoRecurringTransactions);
+        setRecurringTransactionsLoading(false);
+        return;
+      }
+
       setRecurringTransactionsLoading(true);
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
@@ -115,7 +124,7 @@ export function RecurringTransactionProvider({
         setRecurringTransactionsLoading(false);
       }
     },
-    [groupId],
+    [groupId, isDemoMode],
   );
 
   useEffect(() => {
@@ -166,6 +175,35 @@ export function RecurringTransactionProvider({
       endDate?: Date;
       splits: ExpenseSplit[];
     }) => {
+      if (isDemoMode) {
+        setIsCreateRecurringTransactionLoading(true);
+
+        const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
+
+        const newTx: DetailedRecurringTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          title,
+          amount,
+          interval: interval as "daily" | "weekly" | "monthly",
+          startDate,
+          endDate: endDate ?? null,
+          nextOccurence: startDate,
+          groupMemberId: owner?.id ?? transactionOwnerId,
+          groupMemberNickname: owner?.nickname ?? "",
+          detailedExpenses: splits.map((s) => ({
+            groupMemberId: s.groupMemberId,
+            groupMemberNickname:
+              demoGroupMembers.find((m) => m.id === s.groupMemberId)
+                ?.nickname ?? "",
+            amount: s.amount,
+          })),
+        };
+
+        setRecurringTransactions((prev) => [...prev, newTx]);
+        setIsCreateRecurringTransactionLoading(false);
+        return true;
+      }
       setIsCreateRecurringTransactionLoading(true);
       try {
         const transformedSplits: CreateTransactionExpense[] = splits.map(
@@ -209,7 +247,7 @@ export function RecurringTransactionProvider({
         setIsCreateRecurringTransactionLoading(false);
       }
     },
-    [resetRecurringTransactions],
+    [resetRecurringTransactions, isDemoMode],
   );
 
   const deleteRecurringTransaction = useCallback(

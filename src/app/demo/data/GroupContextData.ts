@@ -44,13 +44,4 @@ export const demoGroupMembers: DetailedGroupMember[] = [
     userId: "8c0e8400-e29b-41d4-a716-446655440003",
     userEmail: "taylor.williams@example.com",
   },
-  //   {
-  //     id: "e5f6a7b8-c9d0-4e5f-2a3b-4c5d6e7f8a9b",
-  //     createdAt: new Date("2025-09-03T11:20:00Z"),
-  //     nickname: "Morgan",
-  //     leftAt: null,
-  //     active: false,
-  //     userId: "9d0e8400-e29b-41d4-a716-446655440004",
-  //     userEmail: "morgan.davis@example.com",
-  //   },
 ];

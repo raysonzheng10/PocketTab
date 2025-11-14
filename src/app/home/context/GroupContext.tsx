@@ -60,8 +60,10 @@ export function GroupProvider({ children }: { children: ReactNode }) {
 
   const fetchGroupWithGroupMembers = useCallback(async () => {
     if (isDemoMode) {
+      setGroupLoading(true);
       setGroup(demoGroup);
       setGroupMembers(demoGroupMembers);
+      setGroupLoading(false);
       setError("");
       return;
     }

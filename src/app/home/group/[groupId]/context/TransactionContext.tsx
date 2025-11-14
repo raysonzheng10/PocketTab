@@ -14,6 +14,9 @@ import {
   useCallback,
 } from "react";
 import { useSettlements } from "./SettlementContext";
+import { usePathname } from "next/navigation";
+import { demoTransactions } from "@/app/demo/data/TransactionContextData";
+import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
 
 type TransactionContextType = {
   transactions: DetailedTransaction[];
@@ -46,6 +49,9 @@ const TransactionContext = createContext<TransactionContextType | undefined>(
 );
 
 export function TransactionProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
+
   const { groupId } = useGroup();
   const { refreshSettlements } = useSettlements();
 
@@ -61,6 +67,15 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const fetchTransactions = useCallback(
     async (cursor: string) => {
+      if (isDemoMode) {
+        setTransactionsLoading(true);
+        setTransactions(demoTransactions);
+        setHasMoreTransactions(false);
+        setError("");
+        setTransactionsLoading(false);
+        return;
+      }
+
       setTransactionsLoading(true);
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
@@ -95,7 +110,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setTransactionsLoading(false);
       }
     },
-    [groupId],
+    [groupId, isDemoMode],
   );
 
   useEffect(() => {
@@ -141,6 +156,34 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       date: Date;
       splits: ExpenseSplit[];
     }) => {
+      if (isDemoMode) {
+        setIsCreateTransactionLoading(true);
+
+        const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
+
+        const newTx: DetailedTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          amount,
+          title,
+          date,
+          isReimbursement: false,
+          groupMemberId: owner?.id ?? transactionOwnerId,
+          groupMemberNickname: owner?.nickname ?? "",
+          detailedExpenses: splits.map((s) => ({
+            groupMemberId: s.groupMemberId,
+            groupMemberNickname:
+              demoGroupMembers.find((m) => m.id === s.groupMemberId)
+                ?.nickname ?? "",
+            amount: s.amount,
+          })),
+        };
+
+        setTransactions((prev) => [...prev, newTx]);
+        setIsCreateTransactionLoading(false);
+        return true;
+      }
+
       setIsCreateTransactionLoading(true);
       try {
         const transformedSplits: CreateTransactionExpense[] = splits.map(
@@ -181,11 +224,16 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateTransactionLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, refreshSettlements, isDemoMode],
   );
 
   const deleteTransaction = useCallback(
     async ({ transactionId }: { transactionId: string }) => {
+      if (isDemoMode) {
+        setTransactions((prev) => prev.filter((tx) => tx.id !== transactionId));
+        return true;
+      }
+
       try {
         const res = await fetch(`/api/protected/transaction/delete`, {
           method: "POST",
@@ -229,6 +277,37 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       amount: number;
       date: Date;
     }) => {
+      if (isDemoMode) {
+        setIsCreateReimbursementLoading(true);
+
+        const payer = demoGroupMembers.find(
+          (m) => m.id === reimbursementCreatorId,
+        );
+        const recipient = demoGroupMembers.find((m) => m.id === recipientId);
+
+        const newTx: DetailedTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          amount,
+          title,
+          date,
+          isReimbursement: true,
+          groupMemberId: payer?.id ?? reimbursementCreatorId,
+          groupMemberNickname: payer?.nickname ?? "",
+          detailedExpenses: [
+            {
+              groupMemberId: recipient?.id ?? recipientId,
+              groupMemberNickname: recipient?.nickname ?? "",
+              amount,
+            },
+          ],
+        };
+
+        setTransactions((prev) => [...prev, newTx]);
+        setIsCreateReimbursementLoading(false);
+        return true;
+      }
+
       setIsCreateReimbursementLoading(true);
       try {
         const res = await fetch(
@@ -265,7 +344,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateReimbursementLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, refreshSettlements, isDemoMode],
   );
 
   return (

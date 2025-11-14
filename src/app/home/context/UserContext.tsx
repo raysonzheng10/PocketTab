@@ -35,8 +35,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     if (isDemoMode) {
+      setUserLoading(true);
       setUser(demoUser);
       setError("");
+      setUserLoading(false);
       return;
     }
 
@@ -69,8 +71,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const fetchGroups = useCallback(async () => {
     if (isDemoMode) {
+      setUserGroupsLoading(true);
       setUserGroups(demoUserGroups);
       setError("");
+      setUserGroupsLoading(false);
       return;
     }
 

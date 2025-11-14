@@ -4,7 +4,6 @@ import {
   DetailedTransaction,
   CreateTransactionExpense,
   ExpenseSplit,
-  DetailedSettlement,
 } from "@/types";
 import {
   createContext,
@@ -14,46 +13,15 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { useSettlements } from "./SettlementContext";
 import { usePathname } from "next/navigation";
 import { demoTransactions } from "@/app/demo/data/TransactionContextData";
 import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
-import { demoUser } from "@/app/demo/data/UserContextData";
-
-// ! ONLY FOR DEMO SUPPORT
-function recomputeDemoSettlements(
-  transactions: DetailedTransaction[],
-): DetailedSettlement[] {
-  const ledger: Record<string, number> = {};
-
-  for (const tx of transactions) {
-    const payer = tx.groupMemberId;
-
-    for (const e of tx.detailedExpenses) {
-      if (e.groupMemberId === payer) continue;
-
-      if (demoUser.id === payer) {
-        ledger[e.groupMemberId] = (ledger[e.groupMemberId] ?? 0) + e.amount;
-      } else if (demoUser.id === e.groupMemberId) {
-        ledger[payer] = (ledger[payer] ?? 0) - e.amount;
-      }
-    }
-  }
-
-  return Object.entries(ledger).map(([id, amount]) => {
-    const member = demoGroupMembers.find((m) => m.id === id);
-    return {
-      groupMemberId: id,
-      nickname: member?.nickname ?? "",
-      amount,
-    };
-  });
-}
 
 type TransactionContextType = {
   transactions: DetailedTransaction[];
   transactionsLoading: boolean;
   resetTransactions: () => Promise<void>;
+  isResettingTransactions: boolean;
   fetchNextTransactions: () => Promise<void>;
   hasMoreTransactions: boolean;
   createTransaction: (params: {
@@ -85,7 +53,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const isDemoMode = pathname?.startsWith("/demo");
 
   const { groupId } = useGroup();
-  const { refreshSettlements, setSettlements } = useSettlements();
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState<boolean>(true);
@@ -109,6 +76,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       }
 
       setTransactionsLoading(true);
+      console.log("refreshing transactions");
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
       try {
@@ -152,13 +120,17 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
+  const [isResettingTransactions, setIsResettingTransactions] =
+    useState<boolean>(true);
+
   const resetTransactions = useCallback(async () => {
     if (transactionsLoading) {
       return;
     }
-
+    setIsResettingTransactions(true);
     setTransactionCursor("");
     await fetchTransactions("");
+    setIsResettingTransactions(false);
   }, [fetchTransactions, transactionsLoading]);
 
   const fetchNextTransactions = useCallback(async () => {
@@ -213,7 +185,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
         setTransactions((prev) => {
           const next = [...prev, newTx];
-          setSettlements(recomputeDemoSettlements(next));
+          // setSettlements(recomputeDemoSettlements(next));
           return next;
         });
         setIsCreateTransactionLoading(false);
@@ -246,7 +218,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to create transaction");
 
         resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -260,7 +231,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateTransactionLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   const deleteTransaction = useCallback(
@@ -268,7 +239,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (isDemoMode) {
         setTransactions((prev) => {
           const next = prev.filter((tx) => tx.id !== transactionId);
-          setSettlements(recomputeDemoSettlements(next));
+          // setSettlements(recomputeDemoSettlements(next));
           return next;
         });
         return true;
@@ -288,7 +259,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to delete transaction");
 
         await resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -300,7 +270,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   const createReimbursement = useCallback(
@@ -345,7 +315,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
         setTransactions((prev) => {
           const next = [...prev, newTx];
-          setSettlements(recomputeDemoSettlements(next));
+          // setSettlements(recomputeDemoSettlements(next));
           return next;
         });
         setIsCreateReimbursementLoading(false);
@@ -374,7 +344,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to create transaction");
 
         resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -388,7 +357,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateReimbursementLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements, isDemoMode, setSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   return (
@@ -397,6 +366,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         transactions,
         transactionsLoading,
         resetTransactions,
+        isResettingTransactions,
         fetchNextTransactions,
         hasMoreTransactions,
         createTransaction,

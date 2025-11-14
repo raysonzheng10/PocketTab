@@ -17,13 +17,13 @@ export default function DemoLayout({
       <UserProvider>
         <GroupProvider>
           <HomeLayoutContent>
-            <SettlementProvider>
-              <TransactionProvider>
+            <TransactionProvider>
+              <SettlementProvider>
                 <RecurringTransactionProvider>
                   {children}
                 </RecurringTransactionProvider>
-              </TransactionProvider>
-            </SettlementProvider>
+              </SettlementProvider>
+            </TransactionProvider>
           </HomeLayoutContent>
         </GroupProvider>
       </UserProvider>

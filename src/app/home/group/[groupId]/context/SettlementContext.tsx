@@ -4,7 +4,8 @@ import {
   demoSettlementTotal,
 } from "@/app/demo/data/SettlementContextData";
 import { useGroup } from "@/app/home/context/GroupContext";
-import { DetailedSettlement } from "@/types";
+import { useTransactions } from "./TransactionContext";
+import { DetailedSettlement, DetailedTransaction } from "@/types";
 import { usePathname } from "next/navigation";
 import {
   createContext,
@@ -14,6 +15,38 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import { demoUser } from "@/app/demo/data/UserContextData";
+import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+
+// ! ONLY FOR DEMO SUPPORT
+function recomputeDemoSettlements(
+  transactions: DetailedTransaction[],
+): DetailedSettlement[] {
+  const ledger: Record<string, number> = {};
+
+  for (const tx of transactions) {
+    const payer = tx.groupMemberId;
+
+    for (const e of tx.detailedExpenses) {
+      if (e.groupMemberId === payer) continue;
+
+      if (demoUser.id === payer) {
+        ledger[e.groupMemberId] = (ledger[e.groupMemberId] ?? 0) + e.amount;
+      } else if (demoUser.id === e.groupMemberId) {
+        ledger[payer] = (ledger[payer] ?? 0) - e.amount;
+      }
+    }
+  }
+
+  return Object.entries(ledger).map(([id, amount]) => {
+    const member = demoGroupMembers.find((m) => m.id === id);
+    return {
+      groupMemberId: id,
+      nickname: member?.nickname ?? "",
+      amount,
+    };
+  });
+}
 
 type SettlementContextType = {
   settlements: DetailedSettlement[];
@@ -32,6 +65,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isDemoMode = pathname?.startsWith("/demo");
   const { groupId } = useGroup();
+  const { transactions, isResettingTransactions } = useTransactions();
 
   const [settlements, setSettlements] = useState<DetailedSettlement[]>([]);
   const [settlementTotal, setSettlementTotal] = useState<number>(0);
@@ -74,9 +108,19 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   }, [groupId, isDemoMode]);
 
   useEffect(() => {
-    if (!groupId && !isDemoMode) return;
+    if (isDemoMode) return;
+    if (!groupId) return;
+    if (!isResettingTransactions) return;
+
     fetchSettlements();
-  }, [groupId, fetchSettlements, isDemoMode]);
+  }, [groupId, fetchSettlements, isDemoMode, isResettingTransactions]);
+
+  useEffect(() => {
+    if (!isDemoMode) return;
+    setSettlementsLoading(true);
+    setSettlements(recomputeDemoSettlements(transactions));
+    setSettlementsLoading(false);
+  }, [isDemoMode, transactions]);
 
   return (
     <SettlementContext.Provider

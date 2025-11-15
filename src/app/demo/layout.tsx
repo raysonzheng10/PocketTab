@@ -6,6 +6,7 @@ import { SettlementProvider } from "../home/group/[groupId]/context/SettlementCo
 import { TransactionProvider } from "../home/group/[groupId]/context/TransactionContext";
 import { RecurringTransactionProvider } from "../home/group/[groupId]/context/RecurringTransactionContext";
 import HomeLayoutContent from "../home/components/HomeLayoutContent";
+import DemoAlert from "./components/DemoAlert";
 
 export default function DemoLayout({
   children,
@@ -20,6 +21,7 @@ export default function DemoLayout({
             <TransactionProvider>
               <SettlementProvider>
                 <RecurringTransactionProvider>
+                  <DemoAlert />
                   {children}
                 </RecurringTransactionProvider>
               </SettlementProvider>

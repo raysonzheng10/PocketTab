@@ -10,6 +10,7 @@ export default function SettlementDetails() {
   const router = useRouter();
   const { groupId } = useGroup();
   const { settlements, settlementTotal } = useSettlements();
+  console.log(settlementTotal, settlements);
 
   const handleNavigateSettlements = () => {
     if (!groupId) return;

@@ -45,3 +45,13 @@ export const demoGroupMembers: DetailedGroupMember[] = [
     userEmail: "taylor.williams@example.com",
   },
 ];
+
+export const demoUserGroupMember: DetailedGroupMember = {
+  id: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  createdAt: new Date("2025-09-01T08:00:00Z"),
+  nickname: "Alex",
+  leftAt: null,
+  active: true,
+  userId: "550e8400-e29b-41d4-a716-446655440000",
+  userEmail: "demo@example.com",
+};

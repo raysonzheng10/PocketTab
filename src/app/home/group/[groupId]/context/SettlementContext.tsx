@@ -15,13 +15,16 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { demoUser } from "@/app/demo/data/UserContextData";
-import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import {
+  demoGroupMembers,
+  demoUserGroupMember,
+} from "@/app/demo/data/GroupContextData";
 
 // ! ONLY FOR DEMO SUPPORT
-function recomputeDemoSettlements(
-  transactions: DetailedTransaction[],
-): DetailedSettlement[] {
+function recomputeDemoSettlements(transactions: DetailedTransaction[]): {
+  settlements: DetailedSettlement[];
+  total: number;
+} {
   const ledger: Record<string, number> = {};
 
   for (const tx of transactions) {
@@ -30,15 +33,15 @@ function recomputeDemoSettlements(
     for (const e of tx.detailedExpenses) {
       if (e.groupMemberId === payer) continue;
 
-      if (demoUser.id === payer) {
+      if (demoUserGroupMember.id === payer) {
         ledger[e.groupMemberId] = (ledger[e.groupMemberId] ?? 0) + e.amount;
-      } else if (demoUser.id === e.groupMemberId) {
+      } else if (demoUserGroupMember.id === e.groupMemberId) {
         ledger[payer] = (ledger[payer] ?? 0) - e.amount;
       }
     }
   }
 
-  return Object.entries(ledger).map(([id, amount]) => {
+  const settlements = Object.entries(ledger).map(([id, amount]) => {
     const member = demoGroupMembers.find((m) => m.id === id);
     return {
       groupMemberId: id,
@@ -46,6 +49,10 @@ function recomputeDemoSettlements(
       amount,
     };
   });
+
+  const total = settlements.reduce((acc, s) => acc + s.amount, 0);
+
+  return { settlements, total };
 }
 
 type SettlementContextType = {
@@ -64,8 +71,9 @@ const SettlementContext = createContext<SettlementContextType | undefined>(
 export function SettlementProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isDemoMode = pathname?.startsWith("/demo");
-  const { groupId } = useGroup();
-  const { transactions, isResettingTransactions } = useTransactions();
+  const { group } = useGroup();
+  const { transactions, transactionsLoading, isResettingTransactions } =
+    useTransactions();
 
   const [settlements, setSettlements] = useState<DetailedSettlement[]>([]);
   const [settlementTotal, setSettlementTotal] = useState<number>(0);
@@ -81,9 +89,13 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (!group) {
+      return;
+    }
+
     setSettlementsLoading(true);
     try {
-      const res = await fetch(`/api/protected/settlement/${groupId}`, {
+      const res = await fetch(`/api/protected/settlement/${group.id}`, {
         method: "GET",
       });
       const data = await res.json();
@@ -105,22 +117,26 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     } finally {
       setSettlementsLoading(false);
     }
-  }, [groupId, isDemoMode]);
+  }, [group, isDemoMode]);
 
   useEffect(() => {
-    if (isDemoMode) return;
-    if (!groupId) return;
+    if (!group) return;
     if (!isResettingTransactions) return;
 
     fetchSettlements();
-  }, [groupId, fetchSettlements, isDemoMode, isResettingTransactions]);
+  }, [group, fetchSettlements, isDemoMode, isResettingTransactions]);
 
   useEffect(() => {
     if (!isDemoMode) return;
+    if (transactionsLoading) return;
+
     setSettlementsLoading(true);
-    setSettlements(recomputeDemoSettlements(transactions));
+    const { settlements: rcSettlements, total: rcTotal } =
+      recomputeDemoSettlements(transactions);
+    setSettlements(rcSettlements);
+    setSettlementTotal(rcTotal);
     setSettlementsLoading(false);
-  }, [isDemoMode, transactions]);
+  }, [isDemoMode, transactions, transactionsLoading]);
 
   return (
     <SettlementContext.Provider

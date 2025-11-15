@@ -18,3 +18,7 @@ export function formatDate(date: Date): string {
 export function formatAmount(amount: number): string {
   return `$${Number(amount).toFixed(2)}`;
 }
+
+export function simulateDelay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

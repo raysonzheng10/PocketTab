@@ -183,11 +183,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           })),
         };
 
-        setTransactions((prev) => {
-          const next = [...prev, newTx];
-          // setSettlements(recomputeDemoSettlements(next));
-          return next;
-        });
+        setTransactions((prev) => [newTx, ...prev]);
         setIsCreateTransactionLoading(false);
         return true;
       }
@@ -239,7 +235,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (isDemoMode) {
         setTransactions((prev) => {
           const next = prev.filter((tx) => tx.id !== transactionId);
-          // setSettlements(recomputeDemoSettlements(next));
           return next;
         });
         return true;
@@ -315,7 +310,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
         setTransactions((prev) => {
           const next = [...prev, newTx];
-          // setSettlements(recomputeDemoSettlements(next));
           return next;
         });
         setIsCreateReimbursementLoading(false);

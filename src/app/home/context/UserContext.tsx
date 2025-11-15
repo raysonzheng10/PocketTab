@@ -9,6 +9,7 @@ import {
 import type { Group, User } from "@/types";
 import { usePathname } from "next/navigation";
 import { demoUser, demoUserGroups } from "@/app/demo/data/UserContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 // ---- Type ----
 interface UserContextType {
@@ -36,6 +37,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = useCallback(async () => {
     if (isDemoMode) {
       setUserLoading(true);
+      await simulateDelay(400);
       setUser(demoUser);
       setError("");
       setUserLoading(false);
@@ -72,6 +74,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const fetchGroups = useCallback(async () => {
     if (isDemoMode) {
       setUserGroupsLoading(true);
+      await simulateDelay(400);
       setUserGroups(demoUserGroups);
       setError("");
       setUserGroupsLoading(false);

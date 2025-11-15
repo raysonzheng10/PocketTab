@@ -19,6 +19,7 @@ import {
   demoGroupMembers,
   demoUserGroupMember,
 } from "@/app/demo/data/GroupContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 // ! ONLY FOR DEMO SUPPORT
 function recomputeDemoSettlements(transactions: DetailedTransaction[]): {
@@ -72,8 +73,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isDemoMode = pathname?.startsWith("/demo");
   const { group } = useGroup();
-  const { transactions, transactionsLoading, isResettingTransactions } =
-    useTransactions();
+  const { transactions, isResettingTransactions } = useTransactions();
 
   const [settlements, setSettlements] = useState<DetailedSettlement[]>([]);
   const [settlementTotal, setSettlementTotal] = useState<number>(0);
@@ -83,6 +83,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
   const fetchSettlements = useCallback(async () => {
     if (isDemoMode) {
       setSettlementsLoading(true);
+      await simulateDelay(400);
       setSettlements(demoSettlements);
       setSettlementTotal(demoSettlementTotal);
       setSettlementsLoading(false);
@@ -126,17 +127,22 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     fetchSettlements();
   }, [group, fetchSettlements, isDemoMode, isResettingTransactions]);
 
-  useEffect(() => {
-    if (!isDemoMode) return;
-    if (transactionsLoading) return;
-
+  const demoUpdateSettlements = useCallback(async () => {
     setSettlementsLoading(true);
+    await simulateDelay(250);
+
     const { settlements: rcSettlements, total: rcTotal } =
       recomputeDemoSettlements(transactions);
     setSettlements(rcSettlements);
     setSettlementTotal(rcTotal);
     setSettlementsLoading(false);
-  }, [isDemoMode, transactions, transactionsLoading]);
+  }, [transactions]);
+
+  useEffect(() => {
+    if (!isDemoMode) return;
+
+    demoUpdateSettlements();
+  }, [isDemoMode, demoUpdateSettlements]);
 
   return (
     <SettlementContext.Provider

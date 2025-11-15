@@ -2,6 +2,7 @@
 import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
 import { demoRecurringTransactions } from "@/app/demo/data/RecurringTransactionContextData";
 import { useGroup } from "@/app/home/context/GroupContext";
+import { simulateDelay } from "@/app/utils/utils";
 import {
   DetailedRecurringTransaction,
   CreateTransactionExpense,
@@ -74,6 +75,7 @@ export function RecurringTransactionProvider({
     async (cursor: string) => {
       if (isDemoMode) {
         setRecurringTransactionsLoading(true);
+        await simulateDelay(400);
         setRecurringTransactions(demoRecurringTransactions);
         setRecurringTransactionsLoading(false);
         return;
@@ -177,7 +179,7 @@ export function RecurringTransactionProvider({
     }) => {
       if (isDemoMode) {
         setIsCreateRecurringTransactionLoading(true);
-
+        await simulateDelay(250);
         const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
 
         const newTx: DetailedRecurringTransaction = {
@@ -252,6 +254,15 @@ export function RecurringTransactionProvider({
 
   const deleteRecurringTransaction = useCallback(
     async ({ recurringTransactionId }: { recurringTransactionId: string }) => {
+      if (isDemoMode) {
+        await simulateDelay(250);
+        setRecurringTransactions((prev) => {
+          const next = prev.filter((tx) => tx.id !== recurringTransactionId);
+          return next;
+        });
+        return true;
+      }
+
       try {
         const res = await fetch(`/api/protected/recurringTransaction/delete`, {
           method: "POST",

@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useUser } from "./UserContext";
 import { demoGroup, demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 type GroupContextType = {
   group: Group | null;
@@ -61,6 +62,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const fetchGroupWithGroupMembers = useCallback(async () => {
     if (isDemoMode) {
       setGroupLoading(true);
+      await simulateDelay(400);
       setGroup(demoGroup);
       setGroupMembers(demoGroupMembers);
       setGroupLoading(false);
@@ -103,6 +105,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       newDescription?: string;
     }) => {
       if (isDemoMode) {
+        await simulateDelay(250);
         setGroup((prev) => {
           if (!prev) return prev;
           return {
@@ -157,15 +160,17 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       groupMemberId: string;
       nickname: string;
     }) => {
-      if (isDemoMode) {
-        setGroupMembers((prev) => {
-          if (!prev) return prev;
-          return prev.map((member) =>
-            member.id === groupMemberId ? { ...member, nickname } : member,
-          );
-        });
-        return true;
-      }
+      // ! DONT ALLOW IN DEMO MODE
+      // if (isDemoMode) {
+      //   await simulateDelay(250);
+      //   setGroupMembers((prev) => {
+      //     if (!prev) return prev;
+      //     return prev.map((member) =>
+      //       member.id === groupMemberId ? { ...member, nickname } : member,
+      //     );
+      //   });
+      //   return true;
+      // }
       try {
         const res = await fetch(`/api/protected/groupMember/updateNickname`, {
           method: "POST",
@@ -194,7 +199,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [fetchGroupWithGroupMembers, isDemoMode],
+    [fetchGroupWithGroupMembers],
   );
 
   const removeGroupMemberFromGroup = useCallback(

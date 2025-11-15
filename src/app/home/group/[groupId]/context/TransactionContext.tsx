@@ -16,6 +16,7 @@ import {
 import { usePathname } from "next/navigation";
 import { demoTransactions } from "@/app/demo/data/TransactionContextData";
 import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 type TransactionContextType = {
   transactions: DetailedTransaction[];
@@ -68,6 +69,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     async (cursor: string) => {
       if (isDemoMode) {
         setTransactionsLoading(true);
+        await simulateDelay(400);
         setTransactions(demoTransactions);
         setHasMoreTransactions(false);
         setError("");
@@ -162,7 +164,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }) => {
       if (isDemoMode) {
         setIsCreateTransactionLoading(true);
-
+        await simulateDelay(250);
         const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
 
         const newTx: DetailedTransaction = {
@@ -233,6 +235,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const deleteTransaction = useCallback(
     async ({ transactionId }: { transactionId: string }) => {
       if (isDemoMode) {
+        await simulateDelay(250);
         setTransactions((prev) => {
           const next = prev.filter((tx) => tx.id !== transactionId);
           return next;
@@ -284,7 +287,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }) => {
       if (isDemoMode) {
         setIsCreateReimbursementLoading(true);
-
+        await simulateDelay(250);
         const payer = demoGroupMembers.find(
           (m) => m.id === reimbursementCreatorId,
         );
@@ -308,10 +311,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           ],
         };
 
-        setTransactions((prev) => {
-          const next = [...prev, newTx];
-          return next;
-        });
+        setTransactions((prev) => [newTx, ...prev]);
         setIsCreateReimbursementLoading(false);
         return true;
       }

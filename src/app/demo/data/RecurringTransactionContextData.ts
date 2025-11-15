@@ -7,9 +7,9 @@ export const demoRecurringTransactions: DetailedRecurringTransaction[] = [
     title: "Apartment Rent",
     amount: 1600,
     interval: "monthly",
-    startDate: new Date("2025-10-01T00:00:00Z"),
+    startDate: new Date("2025-10-01T08:00:00Z"),
     endDate: null,
-    nextOccurence: new Date("2025-11-01T00:00:00Z"),
+    nextOccurence: new Date("2025-11-01T08:00:00Z"),
     groupMemberId: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", // Alex pays
     groupMemberNickname: "Alex",
     detailedExpenses: [

@@ -2,7 +2,7 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useTransactions } from "../../../context/TransactionContext";
 import TransactionSheet from "../../../transactions/components/TransactionSheet";
@@ -10,8 +10,9 @@ import { DetailedTransaction } from "@/types";
 import { formatDate } from "@/app/utils/utils";
 
 export default function RecentTransactions() {
+  const pathname = usePathname();
   const router = useRouter();
-  const { groupId } = useGroup();
+  const { group } = useGroup();
   const { transactions } = useTransactions();
 
   const [selectedTransaction, setSelectedTransaction] =
@@ -22,9 +23,14 @@ export default function RecentTransactions() {
     return transactions.slice(0, 3);
   }, [transactions]);
 
+  const isDemoPage = pathname.startsWith("/demo");
   const handleNavigateTransactions = () => {
-    if (!groupId) return;
-    router.push(`/home/group/${groupId}/transactions`);
+    if (!group) return;
+    if (isDemoPage) {
+      router.push(`/demo/transactions`);
+    } else {
+      router.push(`/home/group/${group.id}/transactions`);
+    }
   };
 
   return (

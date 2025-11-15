@@ -6,7 +6,7 @@ import { useTransactions } from "../context/TransactionContext";
 import { useRecurringTransactions } from "../context/RecurringTransactionContext";
 import CreateTransactionModal from "../components/CreateTransactionModal/CreateTransactionModal";
 
-function PageContent() {
+export function TransactionsPageContent() {
   const { setError } = useError();
   const { error: transactionsContextError } = useTransactions();
   const { error: recurringTransactionsContextError } =
@@ -41,7 +41,7 @@ function PageContent() {
 export default function Page() {
   return (
     <Suspense fallback={<></>}>
-      <PageContent />
+      <TransactionsPageContent />
     </Suspense>
   );
 }

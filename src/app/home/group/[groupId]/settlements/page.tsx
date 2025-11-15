@@ -6,7 +6,7 @@ import { useRecurringTransactions } from "../context/RecurringTransactionContext
 import CreateReimbursementModal from "../components/CreateReimbursementModal/CreateReimbursementModal";
 import SettlementsCard from "./components/SettlementsCard";
 
-function PageContent() {
+export function SettlementsPageContent() {
   const { setError } = useError();
   const { error: transactionsContextError } = useTransactions();
   const { error: recurringTransactionsContextError } =
@@ -41,7 +41,7 @@ function PageContent() {
 export default function Page() {
   return (
     <Suspense fallback={<></>}>
-      <PageContent />
+      <SettlementsPageContent />
     </Suspense>
   );
 }

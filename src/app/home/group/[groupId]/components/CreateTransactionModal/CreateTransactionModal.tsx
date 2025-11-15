@@ -26,7 +26,7 @@ export default function CreateTransactionModal({
   open,
   onOpenChange,
 }: CreateTransactionModalProps) {
-  const { groupMembers } = useGroup();
+  const { groupMembers, userGroupMemberId } = useGroup();
   const { createTransaction, createTransactionLoading } = useTransactions();
   const { createRecurringTransaction, createRecurringTransactionLoading } =
     useRecurringTransactions();
@@ -39,6 +39,10 @@ export default function CreateTransactionModal({
   const [amount, setAmount] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
   const [payerId, setPayerId] = useState<string>("");
+
+  useEffect(() => {
+    setPayerId(userGroupMemberId);
+  }, [userGroupMemberId]);
 
   // recurring transaction requirements
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -70,7 +74,7 @@ export default function CreateTransactionModal({
     setDate(new Date());
     setEndDate(undefined);
     setInterval("");
-    setPayerId("");
+    setPayerId(userGroupMemberId);
     setIsSplitOptionsOpen(false);
     initializeSplits();
     onOpenChange(false);
@@ -88,10 +92,13 @@ export default function CreateTransactionModal({
       return;
     } else if (!title) {
       setError("Title cannot be empty");
+      return;
     } else if (!payerId) {
       setError("Paid By cannot be empty");
+      return;
     } else if (transactionType == "recurring" && !interval) {
       setError("Must select an Interval");
+      return;
     }
 
     if (transactionType === "recurring") {

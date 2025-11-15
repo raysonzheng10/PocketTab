@@ -27,7 +27,7 @@ export default function SplittingCollapsible({
   setSplits,
   transactionTotal,
 }: SplitOptionsCollapsibleProps) {
-  const { groupMembers } = useGroup();
+  const { groupMembers, userGroupMemberId } = useGroup();
 
   const [isModified, setIsModified] = useState(false);
   const [activeMembers, setActiveMembers] = useState<string[]>(() =>
@@ -144,48 +144,57 @@ export default function SplittingCollapsible({
       <CollapsibleContent className="pt-4">
         <div className="w-full flex flex-col gap-4 overflow-hidden">
           {/* Member entries with checkboxes and percentage inputs */}
-          {groupMembers?.map((member) => {
-            const isActive = activeMembers.includes(member.id);
-            const split = splits.find((s) => s.groupMemberId === member.id) || {
-              groupMemberId: member.id,
-              percentage: 0,
-              amount: 0,
-            };
+          {groupMembers
+            ?.sort((a, b) => {
+              if (a.id === userGroupMemberId) return -1;
+              if (b.id === userGroupMemberId) return 1;
+              return 0;
+            })
+            .map((member) => {
+              const isActive = activeMembers.includes(member.id);
+              const split = splits.find(
+                (s) => s.groupMemberId === member.id,
+              ) || {
+                groupMemberId: member.id,
+                percentage: 0,
+                amount: 0,
+              };
 
-            return (
-              <div
-                key={member.id}
-                className={`flex flex-row items-center gap-1 transition ${
-                  !isActive && "opacity-60"
-                }`}
-              >
-                <div className="flex flex-row items-center gap-2 h-12 flex-1 min-w-0">
-                  <Checkbox
-                    checked={isActive}
-                    onCheckedChange={() => toggleMember(member.id)}
-                    className="shrink-0"
-                  />
-                  <div className="truncate text-sm font-medium text-gray-800">
-                    {member.nickname}
-                  </div>
-                </div>
-                {isActive && (
-                  <div className="flex flex-row items-center gap-1.5 shrink-0">
-                    <span className="text-sm text-gray-400 whitespace-nowrap">
-                      ${split.amount.toFixed(2)}
-                    </span>
-
-                    <PercentageInput
-                      value={split.percentage}
-                      handlePercentageChange={(val) =>
-                        handlePercentageChange(member.id, val)
-                      }
+              return (
+                <div
+                  key={member.id}
+                  className={`flex flex-row items-center gap-1 transition ${
+                    !isActive && "opacity-60"
+                  }`}
+                >
+                  <div className="flex flex-row items-center gap-2 h-12 flex-1 min-w-0">
+                    <Checkbox
+                      checked={isActive}
+                      onCheckedChange={() => toggleMember(member.id)}
+                      className="shrink-0"
                     />
+                    <div className="truncate text-sm font-medium text-gray-800">
+                      {member.nickname}
+                      {member.id === userGroupMemberId && " (You)"}
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                  {isActive && (
+                    <div className="flex flex-row items-center gap-1.5 shrink-0">
+                      <span className="text-sm text-gray-400 whitespace-nowrap">
+                        ${split.amount.toFixed(2)}
+                      </span>
+
+                      <PercentageInput
+                        value={split.percentage}
+                        handlePercentageChange={(val) =>
+                          handlePercentageChange(member.id, val)
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           {isModified && (
             <div className="w-full">
               <Button

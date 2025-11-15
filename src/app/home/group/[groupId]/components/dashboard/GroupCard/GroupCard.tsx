@@ -13,7 +13,7 @@ import { useState } from "react";
 import ShareGroupPopover from "./ShareGroupPopover";
 
 export default function GroupCard() {
-  const { group, groupLoading, groupMembers } = useGroup();
+  const { group, groupLoading, groupMembers, userGroupMemberId } = useGroup();
   const [isSharePopoverOpen, setIsSharePopoverOpen] = useState(false);
 
   return (
@@ -57,15 +57,23 @@ export default function GroupCard() {
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {groupMembers.map((member) => (
-                <Badge
-                  key={member.id}
-                  variant="secondary"
-                  className="px-2 py-0.5 text-xs"
-                >
-                  {member.nickname || "No name"}
-                </Badge>
-              ))}
+              {/* Always show user badge first */}
+              {groupMembers
+                .sort((a, b) => {
+                  if (a.id === userGroupMemberId) return -1;
+                  if (b.id === userGroupMemberId) return 1;
+                  return 0;
+                })
+                .map((member) => (
+                  <Badge
+                    key={member.id}
+                    variant="secondary"
+                    className="px-2 py-0.5 text-xs"
+                  >
+                    {member.nickname || "No name"}
+                    {userGroupMemberId === member.id && " (You)"}
+                  </Badge>
+                ))}
             </div>
           )}
         </div>

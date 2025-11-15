@@ -126,8 +126,7 @@ export default function CreateReimbursementModal({
 
         {debtSettlements.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No valid reimbursements to create because you do not owe anyone else
-            money.
+            {"No one left to reimburse - you don't owe anyone money."}
           </div>
         ) : (
           <div className="flex flex-col gap-6 overflow-hidden">

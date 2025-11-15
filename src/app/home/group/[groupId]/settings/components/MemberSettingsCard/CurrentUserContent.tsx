@@ -3,6 +3,7 @@ import { useGroup } from "@/app/home/context/GroupContext";
 import { formatDate } from "@/app/utils/utils";
 import { Button } from "@/components/ui/button";
 import { DetailedGroupMember } from "@/types";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import LeaveGroupAlert from "./LeaveGroupAlert";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,13 @@ export default function CurrentUserContent({
 }: CurrentUserContentProps) {
   const { userGroupMemberId, updateGroupMemberNickname } = useGroup();
   const { setError } = useError();
+  const pathname = usePathname();
 
   const [isEditingNickname, setIsEditingNickname] = useState<boolean>(false);
   const [nickname, setNickname] = useState<string>("");
 
   const [isUpdatingNickname, setIsUpdatingNickname] = useState<boolean>(false);
+  const isDemoPage = pathname.startsWith("/demo");
 
   const handleSaveNickname = async () => {
     if (!nickname.trim()) {
@@ -88,13 +91,17 @@ export default function CurrentUserContent({
               </p>
               <Button
                 onClick={() => {
-                  setNickname(currentUser.nickname);
-                  setIsEditingNickname(true);
+                  if (!isDemoPage) {
+                    setNickname(currentUser.nickname);
+                    setIsEditingNickname(true);
+                  }
                 }}
                 variant="link"
                 className="h-auto p-0 text-sm"
+                disabled={isDemoPage}
+                title={isDemoPage ? "Not available in demo mode" : undefined}
               >
-                Edit nickname
+                Edit nickname {isDemoPage && " (Not available in the demo)"}
               </Button>
             </div>
           )}

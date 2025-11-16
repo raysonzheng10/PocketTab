@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Experience PocketTab here: [https://pockettab.vercel.app/](https://pockettab.vercel.app/)
 
-## Getting Started
+# PocketTab
 
-First, run the development server:
+PocketTab is a web-based expense sharing app that makes it easy to track what you owe and are owed. I wanted to differentiate PocketTab from other similar apps such as Splitwise or Tab by focusing on ease of use and personalized views, reflecting the way I actually manage expenses in a shared living situation.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Web-based deployment:** Being fully web-based means there’s no app to download — anyone in your group can access it instantly via a URL, lowering the barrier to adoption.
+- **Email OTP login:** Signup and login are consolidated into a single flow using email-based one-time passwords. This eliminates the need for remembering or managing passwords while still keeping access secure.
+- **Personalized views:** Instead of a cluttered group-level interface, PocketTab shows only what you personally owe and are owed. This design reflects real-life usage in a shared house, where not everyone keeps their expenses up to date and what matters most is your own balance rather than tracking everyone else’s activity.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The goal behind these decisions was to create an app that is frictionless to use, intuitive, and tailored to individual users’ needs, rather than forcing everyone to engage with a complex group interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Group Management:** Create groups for any shared expenses, invite members, and track everything in one place.
+- **Expense Tracking:** Log expenses quickly and split costs evenly or customize who pays what.
+- **Recurring Expenses:** Automatically keeps daily, weekly, or monthly expenses updated with no manual input.
+- **Personalized View:** See only what you owe and what you're owed, without unnecessary group-level noise.
+- **Responsive Design:** Interfaces that adapt seamlessly across desktop, tablet, and mobile devices.
+- **Secure & Effortless:** No passwords required—secure email-based verification simplifies access.
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend:** React, Next.js, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend / API:** Next.js API Routes, Supabase Authentication
+- **Database:** PostgreSQL with Prisma ORM
+- **Deployment:** Vercel

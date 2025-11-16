@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { formatDate } from "@/app/utils/utils";
 import { Separator } from "@/components/ui/separator";
+import GroupSettingsSkeleton from "./GroupSettingsSkeleton";
 
 export default function GroupSettingsCard() {
   const { group, groupLoading, updateGroupDetails } = useGroup();
@@ -54,7 +55,7 @@ export default function GroupSettingsCard() {
     setDescription(group?.description || "");
   };
 
-  if (groupLoading || !group) return <div>Loading...</div>;
+  if (groupLoading || !group) return <GroupSettingsSkeleton />;
 
   return (
     <Card>

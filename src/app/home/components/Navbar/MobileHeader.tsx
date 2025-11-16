@@ -9,7 +9,7 @@ interface MobileHeaderProps {
 }
 
 export default function MobileHeader({ onToggleMenu }: MobileHeaderProps) {
-  const { groupId } = useGroup();
+  const { group } = useGroup();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -29,9 +29,16 @@ export default function MobileHeader({ onToggleMenu }: MobileHeaderProps) {
     pathname.endsWith("/settlements") ||
     pathname.endsWith("/members");
 
+  const isDemoPage = pathname.startsWith("/demo");
+
   const handleBack = () => {
-    if (groupId) router.push(`/home/group/${groupId}`);
-    else router.push("/home");
+    if (isDemoPage) {
+      router.push("/demo");
+    } else if (group) {
+      router.push(`/home/group/${group.id}`);
+    } else {
+      router.push("/home");
+    }
   };
 
   return (

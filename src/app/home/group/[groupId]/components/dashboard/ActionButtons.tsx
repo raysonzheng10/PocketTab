@@ -1,7 +1,7 @@
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeftRight, Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface ActionButtonsProps {
   onAddTransaction: () => void;
@@ -12,11 +12,18 @@ export default function ActionButtons({
   onAddTransaction,
   onAddReimbursement,
 }: ActionButtonsProps) {
-  const { groupId } = useGroup();
+  const pathname = usePathname();
   const router = useRouter();
+  const { group } = useGroup();
 
+  const isDemoPage = pathname.startsWith("/demo");
   const onMoveToSettings = () => {
-    router.push(`/home/group/${groupId}/settings`);
+    if (!group) return;
+    if (isDemoPage) {
+      router.push(`/demo/settings`);
+    } else {
+      router.push(`/home/group/${group.id}/settings`);
+    }
   };
   return (
     <div className="grid grid-cols-3 gap-4">

@@ -14,8 +14,10 @@ import { useState } from "react";
 import RecurringTransactionSheet from "./RecurringTransactionSheet";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useGroup } from "@/app/home/context/GroupContext";
 
 export default function RecurringTransactionsTable() {
+  const { userGroupMemberId } = useGroup();
   const { recurringTransactions, recurringTransactionsLoading } =
     useRecurringTransactions();
 
@@ -64,7 +66,11 @@ export default function RecurringTransactionsTable() {
                   </TableCell>
                   <TableCell>{t.title}</TableCell>
                   <TableCell className="capitalize">{t.interval}</TableCell>
-                  <TableCell>{t.groupMemberNickname}</TableCell>
+                  <TableCell>
+                    {" "}
+                    {t.groupMemberNickname}{" "}
+                    {t.groupMemberId === userGroupMemberId && " (You)"}
+                  </TableCell>
                   <TableCell className="whitespace-nowrap text-right">
                     {formatAmount(t.amount)}
                   </TableCell>

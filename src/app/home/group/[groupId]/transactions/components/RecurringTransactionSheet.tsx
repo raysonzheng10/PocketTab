@@ -12,6 +12,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useError } from "@/app/home/context/ErrorContext";
 import { useRecurringTransactions } from "../../context/RecurringTransactionContext";
+import { useGroup } from "@/app/home/context/GroupContext";
 
 interface TransactionSheetProps {
   selectedTransaction: DetailedRecurringTransaction | null;
@@ -23,6 +24,7 @@ export default function RecurringTransactionSheet({
   setSelectedTransaction,
 }: TransactionSheetProps) {
   const { setError } = useError();
+  const { userGroupMemberId } = useGroup();
   const { deleteRecurringTransaction } = useRecurringTransactions();
 
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
@@ -66,14 +68,12 @@ export default function RecurringTransactionSheet({
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="space-y-6">
               {/* Amount Section */}
-              <div className="space-y-1">
+              <div className="flex flex-col gap-1">
                 <p className="text-sm text-muted-foreground">Amount</p>
-                <p className="text-3xl font-bold">
+                <p className="text-2xl font-bold">
                   {formatAmount(selectedTransaction.amount)}
                 </p>
               </div>
-
-              <Separator />
 
               {/* Details Grid */}
               <div className="space-y-4">
@@ -124,6 +124,8 @@ export default function RecurringTransactionSheet({
                   <p className="text-sm text-muted-foreground mb-1">Paid By</p>
                   <p className="truncate text-base">
                     {selectedTransaction.groupMemberNickname}
+                    {selectedTransaction.groupMemberId === userGroupMemberId &&
+                      " (You)"}
                   </p>
                 </div>
               </div>
@@ -134,20 +136,28 @@ export default function RecurringTransactionSheet({
                   <Separator />
                   <div>
                     <p className="text-sm font-semibold mb-3">Split Between</p>
-                    <div className="w-full flex flex-col gap-2 overflow-hidden">
-                      {selectedTransaction.detailedExpenses.map((e) => (
-                        <div
-                          key={e.groupMemberId}
-                          className="flex flex-row justify-between py-2 gap-1"
-                        >
-                          <span className="truncate text-sm">
-                            {e.groupMemberNickname}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {formatAmount(e.amount)}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      {selectedTransaction.detailedExpenses
+                        .sort((a, b) => {
+                          if (a.groupMemberId === userGroupMemberId) return -1;
+                          if (b.groupMemberId === userGroupMemberId) return 1;
+                          return 0;
+                        })
+                        .map((e) => (
+                          <div
+                            key={e.groupMemberId}
+                            className="flex justify-between py-2"
+                          >
+                            <span className="truncate text-sm">
+                              {e.groupMemberNickname}
+                              {e.groupMemberId === userGroupMemberId &&
+                                " (You)"}
+                            </span>
+                            <span className="text-sm font-medium">
+                              {formatAmount(e.amount)}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   </div>
                 </>

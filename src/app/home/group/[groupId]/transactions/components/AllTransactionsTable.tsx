@@ -14,8 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useGroup } from "@/app/home/context/GroupContext";
 
 export default function AllTransactionsTable() {
+  const { userGroupMemberId } = useGroup();
   const {
     transactions,
     hasMoreTransactions,
@@ -59,7 +61,10 @@ export default function AllTransactionsTable() {
                     {formatDate(t.date)}
                   </TableCell>
                   <TableCell>{t.title}</TableCell>
-                  <TableCell>{t.groupMemberNickname}</TableCell>
+                  <TableCell>
+                    {t.groupMemberNickname}{" "}
+                    {t.groupMemberId === userGroupMemberId && " (You)"}
+                  </TableCell>
                   <TableCell className="whitespace-nowrap text-right">
                     {formatAmount(t.amount)}
                   </TableCell>

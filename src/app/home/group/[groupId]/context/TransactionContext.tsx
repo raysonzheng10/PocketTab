@@ -13,12 +13,16 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { useSettlements } from "./SettlementContext";
+import { usePathname } from "next/navigation";
+import { demoTransactions } from "@/app/demo/data/TransactionContextData";
+import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 type TransactionContextType = {
   transactions: DetailedTransaction[];
   transactionsLoading: boolean;
   resetTransactions: () => Promise<void>;
+  isResettingTransactions: boolean;
   fetchNextTransactions: () => Promise<void>;
   hasMoreTransactions: boolean;
   createTransaction: (params: {
@@ -46,8 +50,10 @@ const TransactionContext = createContext<TransactionContextType | undefined>(
 );
 
 export function TransactionProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
+
   const { groupId } = useGroup();
-  const { refreshSettlements } = useSettlements();
 
   const [transactions, setTransactions] = useState<DetailedTransaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState<boolean>(true);
@@ -61,7 +67,18 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const fetchTransactions = useCallback(
     async (cursor: string) => {
+      if (isDemoMode) {
+        setTransactionsLoading(true);
+        await simulateDelay(400);
+        setTransactions(demoTransactions);
+        setHasMoreTransactions(false);
+        setError("");
+        setTransactionsLoading(false);
+        return;
+      }
+
       setTransactionsLoading(true);
+      console.log("refreshing transactions");
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
       try {
@@ -95,23 +112,27 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setTransactionsLoading(false);
       }
     },
-    [groupId],
+    [groupId, isDemoMode],
   );
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchTransactions(transactionCursor);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
+  const [isResettingTransactions, setIsResettingTransactions] =
+    useState<boolean>(true);
+
   const resetTransactions = useCallback(async () => {
     if (transactionsLoading) {
       return;
     }
-
+    setIsResettingTransactions(true);
     setTransactionCursor("");
     await fetchTransactions("");
+    setIsResettingTransactions(false);
   }, [fetchTransactions, transactionsLoading]);
 
   const fetchNextTransactions = useCallback(async () => {
@@ -141,6 +162,34 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       date: Date;
       splits: ExpenseSplit[];
     }) => {
+      if (isDemoMode) {
+        setIsCreateTransactionLoading(true);
+        await simulateDelay(250);
+        const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
+
+        const newTx: DetailedTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          amount,
+          title,
+          date,
+          isReimbursement: false,
+          groupMemberId: owner?.id ?? transactionOwnerId,
+          groupMemberNickname: owner?.nickname ?? "",
+          detailedExpenses: splits.map((s) => ({
+            groupMemberId: s.groupMemberId,
+            groupMemberNickname:
+              demoGroupMembers.find((m) => m.id === s.groupMemberId)
+                ?.nickname ?? "",
+            amount: s.amount,
+          })),
+        };
+
+        setTransactions((prev) => [newTx, ...prev]);
+        setIsCreateTransactionLoading(false);
+        return true;
+      }
+
       setIsCreateTransactionLoading(true);
       try {
         const transformedSplits: CreateTransactionExpense[] = splits.map(
@@ -167,7 +216,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to create transaction");
 
         resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -181,11 +229,20 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateTransactionLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   const deleteTransaction = useCallback(
     async ({ transactionId }: { transactionId: string }) => {
+      if (isDemoMode) {
+        await simulateDelay(250);
+        setTransactions((prev) => {
+          const next = prev.filter((tx) => tx.id !== transactionId);
+          return next;
+        });
+        return true;
+      }
+
       try {
         const res = await fetch(`/api/protected/transaction/delete`, {
           method: "POST",
@@ -200,7 +257,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to delete transaction");
 
         await resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -212,7 +268,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   const createReimbursement = useCallback(
@@ -229,6 +285,37 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       amount: number;
       date: Date;
     }) => {
+      if (isDemoMode) {
+        setIsCreateReimbursementLoading(true);
+        await simulateDelay(250);
+        const payer = demoGroupMembers.find(
+          (m) => m.id === reimbursementCreatorId,
+        );
+        const recipient = demoGroupMembers.find((m) => m.id === recipientId);
+
+        const newTx: DetailedTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          amount,
+          title,
+          date,
+          isReimbursement: true,
+          groupMemberId: payer?.id ?? reimbursementCreatorId,
+          groupMemberNickname: payer?.nickname ?? "",
+          detailedExpenses: [
+            {
+              groupMemberId: recipient?.id ?? recipientId,
+              groupMemberNickname: recipient?.nickname ?? "",
+              amount,
+            },
+          ],
+        };
+
+        setTransactions((prev) => [newTx, ...prev]);
+        setIsCreateReimbursementLoading(false);
+        return true;
+      }
+
       setIsCreateReimbursementLoading(true);
       try {
         const res = await fetch(
@@ -251,7 +338,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error || "Failed to create transaction");
 
         resetTransactions();
-        refreshSettlements();
         setError("");
         return true;
       } catch (err: unknown) {
@@ -265,7 +351,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         setIsCreateReimbursementLoading(false);
       }
     },
-    [resetTransactions, refreshSettlements],
+    [resetTransactions, isDemoMode],
   );
 
   return (
@@ -274,6 +360,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         transactions,
         transactionsLoading,
         resetTransactions,
+        isResettingTransactions,
         fetchNextTransactions,
         hasMoreTransactions,
         createTransaction,

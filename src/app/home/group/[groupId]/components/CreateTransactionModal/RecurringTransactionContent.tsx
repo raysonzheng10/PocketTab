@@ -54,7 +54,7 @@ export default function RecurringTransactionContent({
   endDate,
   setEndDate,
 }: OneTimeTransactionContentProps) {
-  const { groupMembers } = useGroup();
+  const { groupMembers, userGroupMemberId } = useGroup();
   const [isPayerPopoverOpen, setIsPayerPopoverOpen] = useState<boolean>(false);
   const [isIntervalPopoverOpen, setIsIntervalPopoverOpen] =
     useState<boolean>(false);
@@ -81,10 +81,16 @@ export default function RecurringTransactionContent({
           <PopoverTrigger asChild>
             <Button variant="outline" className="justify-between font-normal">
               <span className="truncate mr-1">
-                {payerId
-                  ? groupMembers?.find((member) => member.id === payerId)
-                      ?.nickname
-                  : "Select member..."}
+                {(() => {
+                  if (!payerId) return "Select member...";
+
+                  const member = groupMembers?.find((m) => m.id === payerId);
+                  if (!member) return "Select member...";
+
+                  return member.id === userGroupMemberId
+                    ? `${member.nickname} (You)`
+                    : member.nickname;
+                })()}
               </span>
               <ChevronsUpDown className="size-4 opacity-50" />
             </Button>
@@ -115,7 +121,10 @@ export default function RecurringTransactionContent({
                       <Check
                         className={`size-4 ${payerId != member.id && "opacity-0"}`}
                       />
-                      <span className="truncate">{member.nickname}</span>
+                      <span className="truncate">
+                        {member.nickname}{" "}
+                        {userGroupMemberId === member.id && " (You)"}
+                      </span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -125,7 +134,7 @@ export default function RecurringTransactionContent({
         </Popover>
       </FormField>
 
-      <FormField title="Paid By">
+      <FormField title="Interval">
         <Popover
           open={isIntervalPopoverOpen}
           onOpenChange={setIsIntervalPopoverOpen}

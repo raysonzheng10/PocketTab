@@ -7,12 +7,14 @@ import {
   useCallback,
 } from "react";
 import type { Group, User } from "@/types";
+import { usePathname } from "next/navigation";
+import { demoUser, demoUserGroups } from "@/app/demo/data/UserContextData";
+import { simulateDelay } from "@/app/utils/utils";
 
 // ---- Type ----
 interface UserContextType {
   error: string;
   user: User | null;
-  setUser: (user: User | null) => void;
   userLoading: boolean;
   refreshUser: () => Promise<void>;
   userGroups: Group[];
@@ -25,11 +27,23 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // ---- Provider ----
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
+
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [userLoading, setUserLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
+    if (isDemoMode) {
+      setUserLoading(true);
+      await simulateDelay(400);
+      setUser(demoUser);
+      setError("");
+      setUserLoading(false);
+      return;
+    }
+
     setUserLoading(true);
     try {
       const res = await fetch("/api/protected/user");
@@ -48,7 +62,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUserLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => {
     fetchUser();
@@ -58,6 +72,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userGroupsLoading, setUserGroupsLoading] = useState<boolean>(true);
 
   const fetchGroups = useCallback(async () => {
+    if (isDemoMode) {
+      setUserGroupsLoading(true);
+      await simulateDelay(400);
+      setUserGroups(demoUserGroups);
+      setError("");
+      setUserGroupsLoading(false);
+      return;
+    }
+
     setUserGroupsLoading(true);
     try {
       const res = await fetch("/api/protected/group");
@@ -71,7 +94,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       );
     }
     setUserGroupsLoading(false);
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => {
     fetchGroups();
@@ -81,7 +104,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     <UserContext.Provider
       value={{
         user,
-        setUser,
         userLoading,
         error,
         refreshUser: fetchUser,

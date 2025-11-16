@@ -1,10 +1,14 @@
 "use client";
+import { demoGroupMembers } from "@/app/demo/data/GroupContextData";
+import { demoRecurringTransactions } from "@/app/demo/data/RecurringTransactionContextData";
 import { useGroup } from "@/app/home/context/GroupContext";
+import { simulateDelay } from "@/app/utils/utils";
 import {
   DetailedRecurringTransaction,
   CreateTransactionExpense,
   ExpenseSplit,
 } from "@/types";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -48,6 +52,8 @@ export function RecurringTransactionProvider({
 }: {
   children: ReactNode;
 }) {
+  const pathname = usePathname();
+  const isDemoMode = pathname?.startsWith("/demo");
   const { groupId } = useGroup();
 
   const [recurringTransactions, setRecurringTransactions] = useState<
@@ -67,6 +73,14 @@ export function RecurringTransactionProvider({
 
   const fetchRecurringTransactions = useCallback(
     async (cursor: string) => {
+      if (isDemoMode) {
+        setRecurringTransactionsLoading(true);
+        await simulateDelay(400);
+        setRecurringTransactions(demoRecurringTransactions);
+        setRecurringTransactionsLoading(false);
+        return;
+      }
+
       setRecurringTransactionsLoading(true);
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
@@ -112,11 +126,11 @@ export function RecurringTransactionProvider({
         setRecurringTransactionsLoading(false);
       }
     },
-    [groupId],
+    [groupId, isDemoMode],
   );
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId && !isDemoMode) return;
     fetchRecurringTransactions("");
 
     // fetchRecurringTransactions(recurringTransactionCursor);
@@ -163,6 +177,35 @@ export function RecurringTransactionProvider({
       endDate?: Date;
       splits: ExpenseSplit[];
     }) => {
+      if (isDemoMode) {
+        setIsCreateRecurringTransactionLoading(true);
+        await simulateDelay(250);
+        const owner = demoGroupMembers.find((m) => m.id === transactionOwnerId);
+
+        const newTx: DetailedRecurringTransaction = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          title,
+          amount,
+          interval: interval as "daily" | "weekly" | "monthly",
+          startDate,
+          endDate: endDate ?? null,
+          nextOccurence: startDate,
+          groupMemberId: owner?.id ?? transactionOwnerId,
+          groupMemberNickname: owner?.nickname ?? "",
+          detailedExpenses: splits.map((s) => ({
+            groupMemberId: s.groupMemberId,
+            groupMemberNickname:
+              demoGroupMembers.find((m) => m.id === s.groupMemberId)
+                ?.nickname ?? "",
+            amount: s.amount,
+          })),
+        };
+
+        setRecurringTransactions((prev) => [...prev, newTx]);
+        setIsCreateRecurringTransactionLoading(false);
+        return true;
+      }
       setIsCreateRecurringTransactionLoading(true);
       try {
         const transformedSplits: CreateTransactionExpense[] = splits.map(
@@ -206,11 +249,20 @@ export function RecurringTransactionProvider({
         setIsCreateRecurringTransactionLoading(false);
       }
     },
-    [resetRecurringTransactions],
+    [resetRecurringTransactions, isDemoMode],
   );
 
   const deleteRecurringTransaction = useCallback(
     async ({ recurringTransactionId }: { recurringTransactionId: string }) => {
+      if (isDemoMode) {
+        await simulateDelay(250);
+        setRecurringTransactions((prev) => {
+          const next = prev.filter((tx) => tx.id !== recurringTransactionId);
+          return next;
+        });
+        return true;
+      }
+
       try {
         const res = await fetch(`/api/protected/recurringTransaction/delete`, {
           method: "POST",

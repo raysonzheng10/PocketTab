@@ -13,13 +13,13 @@ export default function GroupLayout({
 }) {
   return (
     <GroupVerifier>
-      <SettlementProvider>
-        <TransactionProvider>
+      <TransactionProvider>
+        <SettlementProvider>
           <RecurringTransactionProvider>
             {children}
           </RecurringTransactionProvider>
-        </TransactionProvider>
-      </SettlementProvider>
+        </SettlementProvider>
+      </TransactionProvider>
     </GroupVerifier>
   );
 }

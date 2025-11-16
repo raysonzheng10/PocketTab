@@ -12,13 +12,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export default function LeaveGroupAlert() {
   const { userGroupMemberId, removeGroupMemberFromGroup } = useGroup();
   const { setError } = useError();
+  const pathname = usePathname();
 
   const [isLeavingGroup, setIsLeavingGroup] = useState<boolean>(false);
+  const isDemoPage = pathname.startsWith("/demo");
 
   const handleLeaveGroup = async () => {
     setIsLeavingGroup(true);
@@ -50,15 +53,25 @@ export default function LeaveGroupAlert() {
         <AlertDialogHeader>
           <AlertDialogTitle>Leave this group?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to leave this group? You can only rejoin the
-            group given the join URL.
+            {isDemoPage
+              ? "Leaving groups is not available in demo mode."
+              : "Are you sure you want to leave this group? You can only rejoin the group given the join URL."}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleLeaveGroup}>
-            Leave Group
-          </AlertDialogAction>
+          {isDemoPage ? (
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          ) : (
+            <>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={handleLeaveGroup}
+              >
+                Leave Group
+              </AlertDialogAction>
+            </>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

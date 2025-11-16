@@ -12,6 +12,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTransactions } from "../../context/TransactionContext";
 import { useError } from "@/app/home/context/ErrorContext";
+import { useGroup } from "@/app/home/context/GroupContext";
 
 interface TransactionSheetProps {
   selectedTransaction: DetailedTransaction | null;
@@ -23,6 +24,7 @@ export default function TransactionSheet({
   setSelectedTransaction,
 }: TransactionSheetProps) {
   const { setError } = useError();
+  const { userGroupMemberId } = useGroup();
   const { deleteTransaction } = useTransactions();
 
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
@@ -92,6 +94,8 @@ export default function TransactionSheet({
                   <p className="text-sm text-muted-foreground mb-1">Paid By</p>
                   <p className="truncate text-base">
                     {selectedTransaction.groupMemberNickname}
+                    {selectedTransaction.groupMemberId === userGroupMemberId &&
+                      " (You)"}
                   </p>
                 </div>
               </div>
@@ -103,19 +107,27 @@ export default function TransactionSheet({
                   <div>
                     <p className="text-sm font-semibold mb-3">Split Between</p>
                     <div className="space-y-2">
-                      {selectedTransaction.detailedExpenses.map((e) => (
-                        <div
-                          key={e.groupMemberId}
-                          className="flex justify-between py-2"
-                        >
-                          <span className="truncate text-sm">
-                            {e.groupMemberNickname}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {formatAmount(e.amount)}
-                          </span>
-                        </div>
-                      ))}
+                      {selectedTransaction.detailedExpenses
+                        .sort((a, b) => {
+                          if (a.groupMemberId === userGroupMemberId) return -1;
+                          if (b.groupMemberId === userGroupMemberId) return 1;
+                          return 0;
+                        })
+                        .map((e) => (
+                          <div
+                            key={e.groupMemberId}
+                            className="flex justify-between py-2"
+                          >
+                            <span className="truncate text-sm">
+                              {e.groupMemberNickname}
+                              {e.groupMemberId === userGroupMemberId &&
+                                " (You)"}
+                            </span>
+                            <span className="text-sm font-medium">
+                              {formatAmount(e.amount)}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   </div>
                 </>

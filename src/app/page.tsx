@@ -1,23 +1,20 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import Features from "./components/Features";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import TechStack from "./components/TechStack";
 
-export default function LandingPage() {
-  const router = useRouter();
-
-  const handleLoginClick = async () => {
-    router.push("/home");
-  };
-
+export default function Page() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center ">
-      <h1 className="text-4xl font-bold mb-4 text-primary">PocketTab</h1>
-      <p className="mb-6 text-lg">
-        Split and track expenses with friends easily.
-      </p>
-      <Button size="lg" onClick={handleLoginClick}>
-        Get Started
-      </Button>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <Hero />
+        <Features />
+        <TechStack />
+      </main>
+      <Footer />
     </div>
   );
 }

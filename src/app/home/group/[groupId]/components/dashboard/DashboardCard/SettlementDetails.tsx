@@ -2,18 +2,24 @@
 "use client";
 import { useGroup } from "@/app/home/context/GroupContext";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useSettlements } from "../../../context/SettlementContext";
 
 export default function SettlementDetails() {
+  const pathname = usePathname();
   const router = useRouter();
-  const { groupId } = useGroup();
+  const { group } = useGroup();
   const { settlements, settlementTotal } = useSettlements();
 
+  const isDemoPage = pathname.startsWith("/demo");
   const handleNavigateSettlements = () => {
-    if (!groupId) return;
-    router.push(`/home/group/${groupId}/settlements`);
+    if (!group) return;
+    if (isDemoPage) {
+      router.push(`/demo/settlements`);
+    } else {
+      router.push(`/home/group/${group.id}/settlements`);
+    }
   };
 
   const isSettled = settlementTotal === 0;

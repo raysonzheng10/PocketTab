@@ -46,7 +46,7 @@ export async function middleware(req: NextRequest) {
         res = NextResponse.next();
       }
     } else {
-      //! Note this should only be '/' and '/login' and '/join (no groupId)' and '/api' not in protected
+      //! Note this should only be '/' and '/login' and '/join' and '/demo' and '/api' not in protected
       res = NextResponse.next();
     }
 
@@ -73,8 +73,8 @@ export async function middleware(req: NextRequest) {
   //? ------ if valid user ------
   let res: NextResponse;
 
-  // log the user in if they are in landing or login page
-  if (pathname === "/" || pathname.startsWith("/login")) {
+  // log the user in if they are in login page
+  if (pathname.startsWith("/login")) {
     url.pathname = "/home";
     res = NextResponse.redirect(url);
   } else {

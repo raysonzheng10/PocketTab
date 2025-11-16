@@ -9,10 +9,21 @@ export default function DemoAlert() {
     router.push("/login");
   };
   return (
-    <div className="fixed bottom-4 right-4 z-[60] max-w-3/4">
+    <div className="fixed top-16 left-4 max-w-3/4 w-fit lg:top-4 lg:left-auto lg:right-4 lg:translate-x-0 z-[20] lg:max-w-3/4">
       <Alert variant="info" className="shadow-sm cursor-default">
-        <AlertDescription className="text-xs sm:text-sm ">
-          <span>
+        <AlertDescription className="text-xs sm:text-sm">
+          <span className="lg:hidden">
+            This is a demo -{" "}
+            <Button
+              variant="link"
+              onClick={navigateToLogin}
+              className="p-0 h-auto text-xs sm:text-sm"
+            >
+              log in
+            </Button>{" "}
+            for all features.
+          </span>
+          <span className="hidden lg:inline">
             This is a demo - data/changes will reset on refresh. Some features
             unavailable.{" "}
             <Button

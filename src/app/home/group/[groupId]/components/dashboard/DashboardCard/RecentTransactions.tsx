@@ -65,7 +65,7 @@ export default function RecentTransactions() {
                   <h4 className="font-semibold text-base leading-tight">
                     {transaction.title}
                   </h4>
-                  <span className="text-lg text-primary font-bold tabular-nums shrink-0">
+                  <span className="text-lg font-semibold shrink-0">
                     ${Math.abs(transaction.amount).toFixed(2)}
                   </span>
                 </div>
@@ -75,7 +75,7 @@ export default function RecentTransactions() {
                     {transaction.groupMemberNickname}
                   </span>
                   <span className="text-muted-foreground/50">•</span>
-                  <span className="tabular-nums">
+                  <span className="tabular-nums min-w-fit">
                     {formatDate(transaction.date)}
                   </span>
                 </div>

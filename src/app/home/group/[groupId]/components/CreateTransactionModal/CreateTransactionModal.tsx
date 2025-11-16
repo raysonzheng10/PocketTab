@@ -96,6 +96,9 @@ export default function CreateTransactionModal({
     } else if (!payerId) {
       setError("Paid By cannot be empty");
       return;
+    } else if (amount === 0) {
+      setError("Amount must be greater than 0");
+      return;
     } else if (transactionType == "recurring" && !interval) {
       setError("Must select an Interval");
       return;

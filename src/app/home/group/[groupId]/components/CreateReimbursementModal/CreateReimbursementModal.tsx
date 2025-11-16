@@ -45,7 +45,7 @@ export default function CreateReimbursementModal({
   open,
   onOpenChange,
 }: CreateReimbursementModalProps) {
-  const { userGroupMemberId } = useGroup();
+  const { userGroupMember } = useGroup();
   const { createReimbursement, createReimbursementLoading } = useTransactions();
   const { settlements } = useSettlements();
   const { setError } = useError();
@@ -65,7 +65,9 @@ export default function CreateReimbursementModal({
   const handleSelectSettlement = (settlement: DetailedSettlement) => {
     setRecipientSettlement(settlement);
     setAmount(Math.abs(settlement.amount));
-    setTitle(`Reimbursement to ${settlement.nickname}`);
+    setTitle(
+      `${userGroupMember?.nickname || ""} Reimburse ${settlement.nickname}`,
+    );
   };
 
   const handleCloseModal = () => {
@@ -80,7 +82,7 @@ export default function CreateReimbursementModal({
     if (!title) {
       setError("Title cannot be empty");
       return;
-    } else if (!userGroupMemberId) {
+    } else if (!userGroupMember) {
       setError("Invalid user");
       return;
     } else if (amount <= 0) {
@@ -95,7 +97,7 @@ export default function CreateReimbursementModal({
     }
 
     const reimbursementSuccess = await createReimbursement({
-      reimbursementCreatorId: userGroupMemberId,
+      reimbursementCreatorId: userGroupMember.id,
       recipientId: recipientSettlement.groupMemberId,
       title,
       amount,

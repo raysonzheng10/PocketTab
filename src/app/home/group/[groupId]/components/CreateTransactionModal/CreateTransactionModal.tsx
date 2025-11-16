@@ -102,6 +102,9 @@ export default function CreateTransactionModal({
     } else if (transactionType == "recurring" && !interval) {
       setError("Must select an Interval");
       return;
+    } else if (transactionType == "recurring" && endDate && endDate <= date) {
+      setError("End Date must be after start date");
+      return;
     }
 
     if (transactionType === "recurring") {

@@ -78,7 +78,6 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       }
 
       setTransactionsLoading(true);
-      console.log("refreshing transactions");
       const cursorAttachment = cursor ? `&cursor=${cursor}` : "";
 
       try {

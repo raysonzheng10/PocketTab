@@ -23,7 +23,9 @@ type GroupContextType = {
     newDescription?: string;
   }) => Promise<boolean>;
   refreshGroup: () => Promise<void>;
+  // TODO: replace all instances of userGroupMemberId with userGroupMember
   userGroupMemberId: string;
+  userGroupMember: DetailedGroupMember | null;
   groupMembers: DetailedGroupMember[];
   updateGroupMemberNickname: (params: {
     groupMemberId: string;
@@ -45,6 +47,8 @@ export function GroupProvider({ children }: { children: ReactNode }) {
 
   const { user } = useUser();
   const [userGroupMemberId, setUserGroupMemberId] = useState<string>("");
+  const [userGroupMember, setUserGroupMember] =
+    useState<DetailedGroupMember | null>(null);
 
   const [group, setGroup] = useState<Group | null>(null);
   const [groupMembers, setGroupMembers] = useState<DetailedGroupMember[]>([]);
@@ -57,6 +61,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       (member) => member.userId === user.id,
     );
     setUserGroupMemberId(matchedMember ? matchedMember.id : "");
+    setUserGroupMember(matchedMember || null);
   }, [user, groupMembers]);
 
   const fetchGroupWithGroupMembers = useCallback(async () => {
@@ -244,6 +249,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         updateGroupDetails,
         refreshGroup: fetchGroupWithGroupMembers,
         userGroupMemberId,
+        userGroupMember,
         groupMembers,
         updateGroupMemberNickname,
         removeGroupMemberFromGroup,

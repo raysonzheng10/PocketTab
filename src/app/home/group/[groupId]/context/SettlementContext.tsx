@@ -122,12 +122,12 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!group) return;
-    if (!isResettingTransactions) return;
 
     fetchSettlements();
-  }, [group, fetchSettlements, isDemoMode, isResettingTransactions]);
+  }, [group, fetchSettlements, isResettingTransactions]);
 
   const demoUpdateSettlements = useCallback(async () => {
+    if (!isDemoMode) return;
     setSettlementsLoading(true);
     await simulateDelay(250);
 
@@ -136,7 +136,7 @@ export function SettlementProvider({ children }: { children: ReactNode }) {
     setSettlements(rcSettlements);
     setSettlementTotal(rcTotal);
     setSettlementsLoading(false);
-  }, [transactions]);
+  }, [isDemoMode, transactions]);
 
   useEffect(() => {
     if (!isDemoMode) return;

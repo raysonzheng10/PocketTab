@@ -17,6 +17,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import { getNextOccurrence } from "@/backend/services/recurringTransactionServices";
 
 // ! Able to do pagination but for now disabling it
 // ! Groups should realistically have some limit of ~10 recurringTransactions
@@ -190,7 +191,7 @@ export function RecurringTransactionProvider({
           interval: interval as "daily" | "weekly" | "monthly",
           startDate,
           endDate: endDate ?? null,
-          nextOccurence: startDate,
+          nextOccurence: getNextOccurrence(interval, startDate, startDate),
           groupMemberId: owner?.id ?? transactionOwnerId,
           groupMemberNickname: owner?.nickname ?? "",
           detailedExpenses: splits.map((s) => ({
@@ -290,7 +291,7 @@ export function RecurringTransactionProvider({
         return false;
       }
     },
-    [resetRecurringTransactions],
+    [resetRecurringTransactions, isDemoMode],
   );
   return (
     <RecurringTransactionContext.Provider

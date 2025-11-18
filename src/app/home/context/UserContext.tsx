@@ -54,10 +54,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       setUser(data.user);
       setError("");
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Unknown error fetching user",
-      );
+    } catch {
+      setError("Error fetching user data, refresh to try again");
       setUser(null);
     } finally {
       setUserLoading(false);
@@ -88,10 +86,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to fetch groups");
       setUserGroups(data.groups);
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Unknown error fetching groups",
-      );
+    } catch {
+      setError("Error fetching groups, refresh to try again");
     }
     setUserGroupsLoading(false);
   }, [isDemoMode]);

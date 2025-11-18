@@ -5,10 +5,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "../../context/UserContext";
 import GroupList from "./GroupList";
 import { Button } from "@/components/ui/button";
+import { useError } from "../../context/ErrorContext";
 
 export default function Home() {
   const router = useRouter();
   const { userGroups, userGroupsLoading, refreshUserGroups } = useUser();
+  const { setError } = useError();
   const handleMoveToGroupPage = (groupId: string) =>
     router.push(`/home/group/${groupId}`);
 
@@ -21,8 +23,8 @@ export default function Home() {
       if (!res.ok || data.error)
         throw new Error(data.error || "Failed to create group");
       refreshUserGroups();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError("Failed to create new group.");
     }
   };
 

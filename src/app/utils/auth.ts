@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabaseClient } from "./supabaseClient";
+import { getServerSupabase, supabaseClient } from "./supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 type AuthSession = {
@@ -24,13 +24,11 @@ export async function getAuthenticatedSession(
   }
 
   // Try validating the access token
-  const {
-    data: { user },
-    error,
-  } = await supabaseClient.auth.getUser(access_token);
+  const server = getServerSupabase(access_token);
+  const { data: user, error } = await server.auth.getUser();
 
-  // Access token is valid - return existing tokens
   if (!error && user) {
+    console.log("Access token succeeded");
     return {
       access_token: access_token || null,
       refresh_token: refresh_token || null,
@@ -40,6 +38,7 @@ export async function getAuthenticatedSession(
 
   // Access token failed, try refresh token
   if (refresh_token) {
+    console.log("Access Token failed, ATTEMPTING refresh token");
     const { data, error: refreshError } =
       await supabaseClient.auth.refreshSession({
         refresh_token,
@@ -47,6 +46,7 @@ export async function getAuthenticatedSession(
 
     // Refresh successful - return new tokens
     if (!refreshError && data?.user && data?.session) {
+      console.log("Successfully used refreshToken to reset data");
       return {
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token,

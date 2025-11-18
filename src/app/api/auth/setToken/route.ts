@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 60 * 60, // 1 hour
+    maxAge: 60 * 60, // 1 hour,
   });
 
   res.cookies.set("sb-refresh-token", refresh_token, {

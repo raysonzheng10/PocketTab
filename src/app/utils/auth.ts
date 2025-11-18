@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabaseClient } from "./supabaseClient";
+import { getServerSupabase, supabaseClient } from "./supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 type AuthSession = {
@@ -24,12 +24,9 @@ export async function getAuthenticatedSession(
   }
 
   // Try validating the access token
-  const {
-    data: { user },
-    error,
-  } = await supabaseClient.auth.getUser(access_token);
+  const server = getServerSupabase(access_token);
+  const { data: user, error } = await server.auth.getUser();
 
-  // Access token is valid - return existing tokens
   if (!error && user) {
     return {
       access_token: access_token || null,

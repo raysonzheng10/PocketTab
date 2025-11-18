@@ -11,17 +11,18 @@ export default function Login() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
 
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [otp, setOtp] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
+  const [sendOtpLoading, setSendOtpLoading] = useState<boolean>(false);
+  const [verifyOtpLoading, setVerifyOtpLoading] = useState<boolean>(false);
 
   const handleSendOtp = async () => {
     setError("");
-    setIsLoading(true);
+    setSendOtpLoading(true);
     const { error } = await supabaseClient.auth.signInWithOtp({ email });
-    setIsLoading(false);
+    setSendOtpLoading(false);
 
     if (error) {
       setError(error.message);
@@ -38,7 +39,7 @@ export default function Login() {
       }
 
       setError("");
-      setIsLoading(true);
+      setVerifyOtpLoading(true);
 
       const { data, error } = await supabaseClient.auth.verifyOtp({
         email,
@@ -48,11 +49,13 @@ export default function Login() {
 
       if (error) {
         setError(error.message);
+        setVerifyOtpLoading(false);
         return;
       }
 
       if (!data?.user) {
         setError("Failed to retrieve user from OTP verification");
+        setVerifyOtpLoading(false);
         return;
       }
 
@@ -85,7 +88,7 @@ export default function Login() {
         : "/home";
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-      setIsLoading(false);
+      setVerifyOtpLoading(false);
     }
   };
 
@@ -112,7 +115,7 @@ export default function Login() {
             otp={otp}
             setOtp={setOtp}
             onVerify={handleVerifyOtp}
-            isLoading={isLoading}
+            isLoading={verifyOtpLoading}
             onResendCode={handleSendOtp}
           />
         ) : (
@@ -120,7 +123,7 @@ export default function Login() {
             email={email}
             setEmail={setEmail}
             onSendOtp={handleSendOtp}
-            isLoading={isLoading}
+            isLoading={sendOtpLoading}
           />
         )}
       </div>

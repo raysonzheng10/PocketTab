@@ -8,7 +8,6 @@ import {
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
-import { formatDate } from "@/app/utils/utils";
 
 type expense = {
   groupMemberId: string;
@@ -92,10 +91,6 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
     throw new Error(
       "transactionOwnerId does not link to valid GroupId, owner of recurring transaction not in group",
     );
-  console.log(
-    recurringTransaction,
-    formatDate(recurringTransaction.nextOccurrence),
-  );
 
   return prisma.$transaction(async (tx) => {
     // Create transaction with expenses and settlements

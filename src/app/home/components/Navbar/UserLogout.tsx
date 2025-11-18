@@ -40,17 +40,6 @@ export default function UserLogout({
     }
   };
 
-  const clearTokens = async () => {
-    try {
-      const res = await fetch("/api/protected/auth/clearToken", {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Failed to log out");
-    } catch {
-      setError("Failed to log out.");
-    }
-  };
-
   return (
     <div className="p-4 border-t border-gray-200">
       {userLoading ? (
@@ -85,13 +74,6 @@ export default function UserLogout({
             {isLogoutLoading ? "Logging out..." : "Logout"}
           </span>
         )}
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start gap-3 px-4 py-3 h-auto text-red-600 hover:text-red-600 hover:bg-red-50"
-        onClick={clearTokens}
-      >
-        Clear Tokens
       </Button>
     </div>
   );

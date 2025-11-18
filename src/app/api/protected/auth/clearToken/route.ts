@@ -13,13 +13,13 @@ export async function POST() {
     maxAge: 0,
   });
 
-  // res.cookies.set("sb-refresh-token", "", {
-  //   httpOnly: true,
-  //   path: "/",
-  //   secure: process.env.NODE_ENV === "production",
-  //   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  //   maxAge: 0,
-  // });
+  res.cookies.set("sb-refresh-token", "", {
+    httpOnly: true,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 0,
+  });
 
   return res;
 }

@@ -92,10 +92,6 @@ export async function createTransactionWithExpensesByRecurringTransactionId(
     throw new Error(
       "transactionOwnerId does not link to valid GroupId, owner of recurring transaction not in group",
     );
-  console.log(
-    recurringTransaction,
-    formatDate(recurringTransaction.nextOccurrence),
-  );
 
   return prisma.$transaction(async (tx) => {
     // Create transaction with expenses and settlements

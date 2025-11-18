@@ -8,7 +8,6 @@ import {
   TransactionWithGroupMember,
 } from "../repositories/transactionRepo";
 import { getNextOccurrence } from "./recurringTransactionServices";
-import { formatDate } from "@/app/utils/utils";
 
 type expense = {
   groupMemberId: string;

@@ -6,6 +6,7 @@ import { useUser } from "../../context/UserContext";
 import GroupList from "./GroupList";
 import { Button } from "@/components/ui/button";
 import { useError } from "../../context/ErrorContext";
+import { useState } from "react";
 
 export default function Home() {
   const router = useRouter();
@@ -14,8 +15,11 @@ export default function Home() {
   const handleMoveToGroupPage = (groupId: string) =>
     router.push(`/home/group/${groupId}`);
 
+  const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
+
   const handleCreateNewGroup = async () => {
     try {
+      setIsCreatingGroup(true);
       const res = await fetch("/api/protected/group/create", {
         method: "POST",
       });
@@ -25,6 +29,8 @@ export default function Home() {
       refreshUserGroups();
     } catch {
       setError("Failed to create new group.");
+    } finally {
+      setIsCreatingGroup(false);
     }
   };
 
@@ -44,6 +50,8 @@ export default function Home() {
               </div>
               <Button
                 onClick={handleCreateNewGroup}
+                loading={isCreatingGroup}
+                disabled={isCreatingGroup}
                 variant={"default"}
                 size={"sm"}
               >

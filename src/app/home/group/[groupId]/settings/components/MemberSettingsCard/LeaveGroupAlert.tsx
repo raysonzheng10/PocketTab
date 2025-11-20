@@ -2,7 +2,6 @@ import { useError } from "@/app/home/context/ErrorContext";
 import { useGroup } from "@/app/home/context/GroupContext";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -64,12 +63,14 @@ export default function LeaveGroupAlert() {
           ) : (
             <>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
+              <Button
                 variant="destructive"
+                loading={isLeavingGroup}
+                disabled={isLeavingGroup}
                 onClick={handleLeaveGroup}
               >
                 Leave Group
-              </AlertDialogAction>
+              </Button>
             </>
           )}
         </AlertDialogFooter>

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
 import { joinUserToGroup } from "@/backend/services/groupMemberServices";
+import { getActiveGroupMembersWithGroupsByUserId } from "@/backend/repositories/groupMemberRepo";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +17,20 @@ export async function POST(req: NextRequest) {
     if (!groupId) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
+    // Check if user already has 5 active groups
+    const activeGroups = await getActiveGroupMembersWithGroupsByUserId(
+      authUser.id,
+    );
+    if (activeGroups.length >= 5) {
+      return NextResponse.json(
+        {
+          error:
+            "You are currently in 5 groups, which is the limit. To join another group, leave one of your current groups.",
+        },
         { status: 400 },
       );
     }

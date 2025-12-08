@@ -21,6 +21,13 @@ export default function Home() {
   const isMaxGroups = userGroups.length >= 5;
 
   const handleCreateNewGroup = async () => {
+    if (isMaxGroups) {
+      setError(
+        "You are currently in 5 groups, which is the limit. To join another group, leave one of your current groups.",
+      );
+      return;
+    }
+
     try {
       setIsCreatingGroup(true);
       const res = await fetch("/api/protected/group/create", {
@@ -28,7 +35,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to create group");
+        throw new Error(data.error ?? "Failed to create group");
       refreshUserGroups();
     } catch {
       setError("Failed to create new group.");

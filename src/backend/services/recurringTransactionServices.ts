@@ -1,6 +1,9 @@
 import { prisma } from "../db";
 import { getGroupIdByGroupMemberId } from "../repositories/groupMemberRepo";
-import { getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated } from "../repositories/recurringTransactionRepo";
+import {
+  getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated,
+  getActiveRecurringTransactionsByGroupId,
+} from "../repositories/recurringTransactionRepo";
 
 type expense = {
   groupMemberId: string;
@@ -120,6 +123,17 @@ export async function getActiveDetailedRecurringTransactionsByGroupIdPaginated(
   );
 
   return { detailedActiveRecurringTransactions, nextCursor };
+}
+
+export async function getActiveRecurringTransactionsByGroupMemberId(
+  groupMemberId: string,
+) {
+  const groupId = await getGroupIdByGroupMemberId(groupMemberId);
+  if (!groupId) {
+    throw new Error("groupMemberId does not link to valid GroupId");
+  }
+
+  return getActiveRecurringTransactionsByGroupId(groupId);
 }
 
 export async function deleteRecurringTransactionWithRecurringExpenses(

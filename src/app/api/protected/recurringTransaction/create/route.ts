@@ -1,7 +1,10 @@
 // api/protected/recurringTransaction/create
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/app/utils/auth";
-import { createRecurringTransactionWithRecurringExpenses } from "@/backend/services/recurringTransactionServices";
+import {
+  createRecurringTransactionWithRecurringExpenses,
+  getActiveRecurringTransactionsByGroupMemberId,
+} from "@/backend/services/recurringTransactionServices";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +33,20 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
+    // Check if group already has 10 active recurring transactions
+    const activeRecurringTransactions =
+      await getActiveRecurringTransactionsByGroupMemberId(transactionOwnerId);
+
+    if (activeRecurringTransactions.length >= 10) {
+      return NextResponse.json(
+        {
+          error:
+            "You are limited to 10 recurring transactions per group. To add another, delete one of your existing recurring transactions.",
+        },
         { status: 400 },
       );
     }

@@ -184,7 +184,9 @@ export default function CreateTransactionModal({
             setPayerId={setPayerId}
           />
 
-          {isMaxRecurringTransactions ? (
+          {isMaxRecurringTransactions &&
+          !createTransactionLoading &&
+          !createRecurringTransactionLoading ? (
             <Alert variant="destructive" className="my-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>

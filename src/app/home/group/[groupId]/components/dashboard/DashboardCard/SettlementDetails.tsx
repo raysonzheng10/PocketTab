@@ -65,11 +65,17 @@ export default function SettlementDetails() {
           </div>
 
           <div className="text-sm text-muted-foreground mt-3">
-            {owedToYou > 0 &&
-              `${owedToYou} ${owedToYou === 1 ? "person owes" : "people owe"} you`}
-            {owedToYou > 0 && youOwe > 0 && " • "}
-            {youOwe > 0 &&
-              `You owe ${youOwe} ${youOwe === 1 ? "person" : "people"}`}
+            {owedToYou > 0 && (
+              <span>
+                {`${owedToYou} ${owedToYou === 1 ? "person owes" : "people owe"} you`}
+              </span>
+            )}
+            {owedToYou > 0 && youOwe > 0 && <span> • </span>}
+            {youOwe > 0 && (
+              <span className="text-red-600 font-semibold">
+                {`You owe ${youOwe} ${youOwe === 1 ? "person" : "people"}`}
+              </span>
+            )}
           </div>
         </>
       ) : (

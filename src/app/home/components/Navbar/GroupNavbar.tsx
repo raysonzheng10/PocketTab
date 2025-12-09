@@ -88,7 +88,12 @@ export default function GroupNavbar({ onNavigate, setError }: NavbarProps) {
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="flex flex-row justify-between items-center p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-800">PocketTab</h1>
+        <h1
+          className="text-xl font-bold text-gray-800 cursor-pointer"
+          onClick={handleNavigateDashboard}
+        >
+          PocketTab
+        </h1>
         <Button
           size="sm"
           variant="ghost"

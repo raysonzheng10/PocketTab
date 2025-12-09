@@ -16,6 +16,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OneTimeTransactionContent from "./OneTimeTransactionContent";
 import RecurringTransactionContent from "./RecurringTransactionContent";
 import { useRecurringTransactions } from "../../context/RecurringTransactionContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export interface CreateTransactionModalProps {
   open: boolean;
@@ -28,8 +30,12 @@ export default function CreateTransactionModal({
 }: CreateTransactionModalProps) {
   const { groupMembers, userGroupMemberId } = useGroup();
   const { createTransaction, createTransactionLoading } = useTransactions();
-  const { createRecurringTransaction, createRecurringTransactionLoading } =
-    useRecurringTransactions();
+  const {
+    createRecurringTransaction,
+    createRecurringTransactionLoading,
+    recurringTransactions,
+    recurringTransactionsLoading,
+  } = useRecurringTransactions();
   const { setError } = useError();
 
   const [transactionType, setTransactionType] = useState<
@@ -50,6 +56,9 @@ export default function CreateTransactionModal({
 
   const [isSplitOptionsOpen, setIsSplitOptionsOpen] = useState(false);
   const [expenseSplits, setExpenseSplits] = useState<ExpenseSplit[]>([]);
+
+  const isMaxRecurringTransactions =
+    transactionType === "recurring" && recurringTransactions.length >= 10;
 
   const initializeSplits = useCallback(() => {
     if (!groupMembers || groupMembers.length === 0) return;
@@ -174,35 +183,55 @@ export default function CreateTransactionModal({
             payerId={payerId}
             setPayerId={setPayerId}
           />
-          <RecurringTransactionContent
-            title={title}
-            setTitle={setTitle}
-            amount={amount}
-            setAmount={setAmount}
-            date={date}
-            setDate={setDate}
-            payerId={payerId}
-            setPayerId={setPayerId}
-            interval={interval}
-            setInterval={setInterval}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
+
+          {isMaxRecurringTransactions &&
+          !createTransactionLoading &&
+          !createRecurringTransactionLoading ? (
+            <Alert variant="destructive" className="my-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You are limited to 10 recurring transactions per group. To add
+                another, delete one of your existing recurring transactions.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <RecurringTransactionContent
+              title={title}
+              setTitle={setTitle}
+              amount={amount}
+              setAmount={setAmount}
+              date={date}
+              setDate={setDate}
+              payerId={payerId}
+              setPayerId={setPayerId}
+              interval={interval}
+              setInterval={setInterval}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          )}
         </Tabs>
 
         <div className="flex flex-col gap-8 overflow-hidden">
-          <Separator />
-          <SplittingCollapsible
-            open={isSplitOptionsOpen}
-            setOpen={setIsSplitOptionsOpen}
-            splits={expenseSplits}
-            setSplits={setExpenseSplits}
-            transactionTotal={amount}
-          />
+          {!isMaxRecurringTransactions && (
+            <>
+              <Separator />
+              <SplittingCollapsible
+                open={isSplitOptionsOpen}
+                setOpen={setIsSplitOptionsOpen}
+                splits={expenseSplits}
+                setSplits={setExpenseSplits}
+                transactionTotal={amount}
+              />
+            </>
+          )}
 
           <Button
             disabled={
-              createTransactionLoading || createRecurringTransactionLoading
+              createTransactionLoading ||
+              createRecurringTransactionLoading ||
+              recurringTransactionsLoading ||
+              isMaxRecurringTransactions
             }
             loading={
               createTransactionLoading || createRecurringTransactionLoading

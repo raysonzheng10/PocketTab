@@ -1,12 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "../../context/UserContext";
 import GroupList from "./GroupList";
 import { Button } from "@/components/ui/button";
 import { useError } from "../../context/ErrorContext";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Home() {
   const router = useRouter();
@@ -17,7 +18,16 @@ export default function Home() {
 
   const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
+  const isMaxGroups = userGroups.length >= 5;
+
   const handleCreateNewGroup = async () => {
+    if (isMaxGroups) {
+      setError(
+        "You are currently in 5 groups, which is the limit. To join another group, leave one of your current groups.",
+      );
+      return;
+    }
+
     try {
       setIsCreatingGroup(true);
       const res = await fetch("/api/protected/group/create", {
@@ -25,7 +35,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok || data.error)
-        throw new Error(data.error || "Failed to create group");
+        throw new Error(data.error ?? "Failed to create group");
       refreshUserGroups();
     } catch {
       setError("Failed to create new group.");
@@ -38,7 +48,7 @@ export default function Home() {
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col gap-4 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between gap-2 mb-6">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -51,7 +61,7 @@ export default function Home() {
               <Button
                 onClick={handleCreateNewGroup}
                 loading={isCreatingGroup}
-                disabled={isCreatingGroup}
+                disabled={userGroupsLoading || isMaxGroups || isCreatingGroup}
                 variant={"default"}
                 size={"sm"}
               >
@@ -61,7 +71,15 @@ export default function Home() {
                 </span>
               </Button>
             </div>
-
+            {isMaxGroups && (
+              <Alert variant="destructive" className="shadow-sm">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You can be in at most 5 groups. To add or join another, leave
+                  one of your current groups.
+                </AlertDescription>
+              </Alert>
+            )}
             {/* Groups List / Skeleton */}
             {userGroupsLoading ? (
               <div className="space-y-3">

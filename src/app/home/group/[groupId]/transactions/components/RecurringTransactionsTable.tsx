@@ -28,7 +28,7 @@ export default function RecurringTransactionsTable() {
     <div className="flex flex-col gap-4">
       <Alert variant="info">
         <AlertDescription className="text-center">
-          Only recurring transactions that are still active will be displayed.
+          Only active recurring transactions will be displayed.
         </AlertDescription>
       </Alert>
 

@@ -1,15 +1,27 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "../home/context/UserContext";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function JoinGroup() {
   const searchParams = useSearchParams();
   const groupId = searchParams.get("groupId");
   const router = useRouter();
+  const { userGroups, userGroupsLoading } = useUser();
 
   const [error, setError] = useState<string | null>(null);
 
   const handleJoinGroup = useCallback(async () => {
+    // Check if user already has 5 groups
+    if (userGroups.length >= 5) {
+      setError(
+        "You are currently in 5 groups, which is the limit. To join another group, leave one of your current groups.",
+      );
+      return;
+    }
+
     try {
       const res = await fetch("/api/protected/group/join", {
         method: "POST",
@@ -18,59 +30,55 @@ function JoinGroup() {
       });
 
       const data = await res.json();
-
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Failed to join group");
+        // For any error from backend, assume bad URL/bad request
+        setError(
+          data.error ??
+            "The invite link may be invalid, please refresh to try again.",
+        );
+        return;
       }
 
       router.push(`/home/group/${groupId}`);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Unknown error occurred");
-      }
+    } catch {
+      // Network or other unexpected errors
+      setError(
+        "The invite link may be invalid or expired. Check that the link is correct and refresh to try again.",
+      );
     }
-  }, [groupId, router]);
+  }, [groupId, router, userGroups.length]);
 
   useEffect(() => {
+    // Wait for user groups to load before attempting to join
+    if (userGroupsLoading) return;
+
     if (groupId) {
       handleJoinGroup();
     } else {
       setError("Invalid join url");
     }
-  }, [groupId, handleJoinGroup]);
+  }, [groupId, handleJoinGroup, userGroupsLoading]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       {error ? (
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </div>
+          <X className="size-16 text-red-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Unable to Join Group
           </h2>
-          <p className="text-gray-600">
-            There was an error when trying to join this group. Check to make
-            sure the URL is correct and refresh to try again.
-          </p>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Button
+            onClick={() => router.push("/home")}
+            variant={"default"}
+            className="w-full"
+          >
+            Return to Home
+          </Button>
         </div>
       ) : (
         <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-xl text-gray-700 font-medium">Joining group...</p>
         </div>
       )}

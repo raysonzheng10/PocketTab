@@ -49,6 +49,17 @@ export async function updateRecurringTransaction(
   });
 }
 
+export async function getActiveRecurringTransactionsByGroupId(
+  groupId: string,
+) {
+  return prisma.recurringTransaction.findMany({
+    where: {
+      groupId,
+      OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+    },
+  });
+}
+
 export async function getActiveRecurringTransactionWithGroupMemberAndRecurringExpensesByGroupIdPaginated(
   groupId: string,
   limit: number,
